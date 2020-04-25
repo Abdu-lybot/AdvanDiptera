@@ -22,12 +22,10 @@ class sonar():
         self.minMM = 0.3
         self.maxMM = 3
         self.mm = float
+        self.frames = ['/sonarD_link','/sonarF_link','/sonarL_link','/sonarB_link','/sonarR_link']
         r = Range()
         r.header.stamp = rospy.Time.now()
-        #r.header.frame_id = "/base_link"
-        r.header.frame_id = "/sonarD_link"
-        #r.header.frame_id = "/sonar1_link"
-
+        #r.header.frame_id = "/sonarD_link"
         r.radiation_type = 0
         r.field_of_view = 0.8
         self.min_range = self.minMM
@@ -52,10 +50,15 @@ class sonar():
                 continue
             #ranges = [float('NaN'), 1.0, -float('Inf'), 3.0, float('Inf')]
             self._range.range = self.mm * 0.001
-            time.sleep(0.5)
+            time.sleep(0.2)
             #rospy.sleep(1.0)
 
-            self.distance_publisher.publish(self._range)
+            for idx in self.frames:
+                self._range.header.frame_id = idx
+                self.distance_publisher.publish(self._range)
+                time.sleep(0.2)
+
+
 if __name__ == '__main__':
     try:
         sensor = sonar()
