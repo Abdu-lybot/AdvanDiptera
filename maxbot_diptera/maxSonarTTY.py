@@ -14,7 +14,7 @@ serialDevice = "/dev/ttyUSB0" # default for RaspberryPi
 maxwait = 3 # seconds to try for a good reading before quitting
 
 def measure(portName):
-    ser = Serial(portName, 9600, 8, 'N', 1, timeout=1)
+    ser = Serial(portName, 9600, 8, 'N', 1, timeout=100000)
     timeStart = time()
     valueCount = 0
 
