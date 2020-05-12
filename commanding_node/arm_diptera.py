@@ -116,5 +116,5 @@ if __name__ == '__main__':
         print("Waiting for Advandiptera brain")
         arm = Arming_Modechng()
         arm.start()
-        
+
     except rospy.ROSInterruptException: pass
