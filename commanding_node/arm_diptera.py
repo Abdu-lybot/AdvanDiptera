@@ -109,8 +109,12 @@ class Arming_Modechng():
             time.sleep(0.2)
 
 if __name__ == '__main__':
-    Gpio_start().start()
-    time.sleep(3.5)
-    print("Waiting for Advandiptera brain")
-    arm = Arming_Modechng()
-    arm.start()
+
+    try:
+        Gpio_start().start()
+        time.sleep(3.5)
+        print("Waiting for Advandiptera brain")
+        arm = Arming_Modechng()
+        arm.start()
+        
+    except rospy.ROSInterruptException: pass
