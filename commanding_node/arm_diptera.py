@@ -1,6 +1,8 @@
 import rospy
 from mavros_msgs.srv import CommandBool, CommandTOL, SetMode
 from mavros_msgs.msg import GlobalPositionTarget, State, PositionTarget
+from sensor_msgs.msg import Imu, NavSatFix
+from pyquaternion import Quaternion
 import time
 import yaml
 from gpio_diptera import Rpi_gpio_comm as Gpio_start
@@ -23,12 +25,26 @@ class Arming_Modechng():
                 if key == "initial_z_pos":
                     self.init_z = value
 
-
-
         rospy.init_node("Arming_safety_node")
+        self.imu_sub = rospy.Subscriber("/mavros/imu/data", Imu,self.imu_callback)
         self.armService = rospy.ServiceProxy('/mavros/cmd/arming', CommandBool)
         self.flightModeService = rospy.ServiceProxy('/mavros/set_mode', SetMode)
         self.local_target_pub = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=10)
+
+    def q2yaw(self, q):
+        if isinstance(q, Quaternion): # Checks if the variable is of the type Quaternion
+            rotate_z_rad = q.yaw_pitch_roll[0]
+        else:
+            q_ = Quaternion(q.w, q.x, q.y, q.z) # Converts into Quaternion
+            rotate_z_rad = q_.yaw_pitch_roll[0]
+
+        return rotate_z_rad
+
+    def imu_callback(self, msg):
+        global global_imu, current_heading
+        self.imu = msg
+        self.current_heading = self.q2yaw(self.imu.orientation) # Transforms q into degrees of yaw
+        self.received_imu = True
 
     def arm(self):
         if self.armService(True):

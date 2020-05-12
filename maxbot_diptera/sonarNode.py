@@ -15,8 +15,8 @@ class sonar():
     def __init__(self):
 
         rospy.init_node('sonar', anonymous=True)
-        topic_sendor_d = '/sonarTP_D'
-        self.distance_publisher_down = rospy.Publisher(topic_sendor_d,Range, queue_size=5)
+        topic_name_d = '/sonarTP_D'
+        self.distance_publisher_down = rospy.Publisher(topic_name_d,Range, queue_size=5)
         #self.r = rospy.Rate(2)
         topic_name_f = '/sonarTP_F'
         self.distance_publisher_front = rospy.Publisher(topic_name_f, Range, queue_size=5)
