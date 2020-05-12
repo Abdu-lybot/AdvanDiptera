@@ -16,6 +16,12 @@ class Arming_Modechng():
             for key, value in data.items():
                 if key == "construct_target":
                     self.current_heading = value
+                if key == "initial_x_pos":
+                    self.init_x = value
+                if key == "initial_y_pos":
+                    self.init_y = value
+                if key == "initial_z_pos":
+                    self.init_z = value
 
 
 
@@ -75,7 +81,7 @@ class Arming_Modechng():
             else:
                 print("Waiting for initialization.")
                 time.sleep(0.5)
-        self.cur_target_pose = self.construct_target(0, 0, 0, self.current_heading)
+        self.cur_target_pose = self.construct_target(self.init_x, self.init_y, self.init_z, self.current_heading)
         #print ("self.cur_target_pose:", self.cur_target_pose, type(self.cur_target_pose))
 
         for i in range(10):
