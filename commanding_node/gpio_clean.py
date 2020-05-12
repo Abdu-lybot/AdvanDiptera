@@ -8,7 +8,7 @@ class Rpi_gpio_comm_off:
 
 
     def start(self):
-        GPIO.cleanup()
+        #GPIO.cleanup()
         GPIO.output(12, GPIO.LOW)
 
 if __name__ == "__main__":

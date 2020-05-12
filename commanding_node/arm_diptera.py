@@ -1,14 +1,28 @@
 import rospy
 from mavros_msgs.srv import CommandBool, CommandTOL, SetMode
+from mavros_msgs.msg import GlobalPositionTarget, State, PositionTarget
 import time
+import yaml
+from gpio_diptera import Rpi_gpio_comm as Gpio_start
+from gpio_clean import Rpi_gpio_comm_off as Gpio_stop
 
 
 class Arming_Modechng():
 
     def __init__(self):
+        self.yamlpath = '/home/lybot/AdvanDiptera/src/commanding_node/params/arm_params.yaml'
+        with open(self.yamlpath) as file:
+            data = yaml.load(file, Loader=yaml.FullLoader)
+            for key, value in data.items():
+                if key == "construct_target":
+                    self.current_heading = value
+
+
+
         rospy.init_node("Arming_safety_node")
         self.armService = rospy.ServiceProxy('/mavros/cmd/arming', CommandBool)
         self.flightModeService = rospy.ServiceProxy('/mavros/set_mode', SetMode)
+        self.local_target_pub = rospy.Publisher('mavros/setpoint_raw/local', PositionTarget, queue_size=10)
 
     def arm(self):
         if self.armService(True):
@@ -35,6 +49,25 @@ class Arming_Modechng():
             rospy.loginfo("failed to change mode")
             return False
 
+    def construct_target(self, x, y, z, yaw, yaw_rate=1):
+        target_raw_pose = PositionTarget()  # We will fill the following message with our values: http://docs.ros.org/api/mavros_msgs/html/msg/PositionTarget.html
+        target_raw_pose.header.stamp = rospy.Time.now()
+
+        target_raw_pose.coordinate_frame = 9
+
+        target_raw_pose.position.x = x
+        target_raw_pose.position.y = y
+        target_raw_pose.position.z = z
+
+        target_raw_pose.type_mask = PositionTarget.IGNORE_VX + PositionTarget.IGNORE_VY + PositionTarget.IGNORE_VZ \
+                                    + PositionTarget.IGNORE_AFX + PositionTarget.IGNORE_AFY + PositionTarget.IGNORE_AFZ \
+                                    + PositionTarget.FORCE
+
+        target_raw_pose.yaw = yaw
+        target_raw_pose.yaw_rate = yaw_rate
+
+        return target_raw_pose
+
     def start(self):
         for i in range(10): # Waits 5 seconds for initialization
             if self.current_heading is not None:
@@ -42,25 +75,17 @@ class Arming_Modechng():
             else:
                 print("Waiting for initialization.")
                 time.sleep(0.5)
-
-        self.cur_target_pose = self.construct_target(0, 0, 0, self.current_heading) # Initialize the drone to this current position
-
+        self.cur_target_pose = self.construct_target(0, 0, 0, self.current_heading)
         #print ("self.cur_target_pose:", self.cur_target_pose, type(self.cur_target_pose))
 
         for i in range(10):
             self.local_target_pub.publish(self.cur_target_pose) # Publish the drone position we initialite during the first 2 seconds
-            #self.arm_state = self.arm() # Arms the drone (not necessary here)
+            self.arm_state = self.arm()    # arms the drone
             self.offboard_state = self.modechnge() # Calls the function offboard the will select the mode Offboard
             time.sleep(0.2)
-            while self.offboard_state and (
-                    rospy.is_shutdown() is False):  # While offboard state is true and we don't shutdown it, do the loop
 
-                self.local_target_pub.publish(
-                    self.cur_target_pose)  # Publish to the mavros local_targe_pub our desired new position
-
-                if (self.state is "LAND") and (
-                        self.local_pose.pose.position.z < self.threshold_ground_minor):  # If we land and we are under 0.15 in the z position...
-
-                    if (self.disarm()):  # ... we disarm the drone
-
-                        self.state = "DISARMED"
+if __name__ == '__main__':
+    Gpio_start.start()
+    time.sleep(20)
+    arm = Arming_Modechng()
+    arm.start()
