@@ -86,6 +86,6 @@ class Arming_Modechng():
 
 if __name__ == '__main__':
     Gpio_start.start()
-    time.sleep(20)
+    time.sleep(3.5)
     arm = Arming_Modechng()
     arm.start()
