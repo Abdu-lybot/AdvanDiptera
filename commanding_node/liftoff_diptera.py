@@ -25,6 +25,7 @@ class Lift_Off:
                  self.takeoff_height = value
 
         self.threshold = 0.3                      # Can be changed in params.yaml
+        self.down_sensor_distance = 0
 
         rospy.init_node("Lift_off_node")
         self.imu_sub = rospy.Subscriber("/mavros/imu/data", Imu, self.imu_callback) 
@@ -116,6 +117,9 @@ class Lift_Off:
             rospy.loginfo("Failed to land AdvanDiptera")
             return False
 
+    def cb_down_sensor (self, msg):
+        self.down_sensor_distance = msg.range
+
     def start(self):
 
         for i in range(10): # Waits 5 seconds for initialization
@@ -127,7 +131,7 @@ class Lift_Off:
 
         self.takeoff_state = self.modechnge_takeoff()
 
-        while self.local_pose.pose.position.z < (self.land_height + self.threshold) and self.cb_down_sensor < (self.land_height + self.threshold):
+        while self.local_pose.pose.position.z < (self.land_height + self.threshold) and self.down_sensor_distance < (self.land_height + self.threshold):
             self.autotakeoff
             time.sleep(0.2)
 

@@ -18,6 +18,8 @@ class Arming_Modechng():
                 if key == "threshold_ground_minor":
                     self.threshold_ground_minor = value
 
+        self.down_sensor_distance = 0
+
         rospy.init_node("Arming_safety_node")
         self.local_pose_sub = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.local_pose_callback)
         self.imu_sub = rospy.Subscriber("/mavros/imu/data", Imu,self.imu_callback) 
@@ -87,6 +89,9 @@ class Arming_Modechng():
             rospy.loginfo("failed to change mode")
             return False
 
+    def cb_down_sensor (self, msg):
+        self.down_sensor_distance = msg.range
+
 
     def start(self):
         for i in range(10): # Waits 5 seconds for initialization
@@ -99,7 +104,7 @@ class Arming_Modechng():
 
         self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x, self.local_pose.pose.position.y, 0, self.current_heading)
 
-        while self.cb_down_sensor > self.threshold_ground_minor and self.local_pose.pose.position.z > self.threshold_ground_minor: # If we land and we are under 0.15 in the z position...
+        while self.down_sensor_distance > self.threshold_ground_minor and self.local_pose.pose.position.z > self.threshold_ground_minor: # If we land and we are under 0.15 in the z position...
             self.local_target_pub.publish(self.cur_target_pose) # Publish the drone position we initialite during the first 2 seconds
             self.offboard_state = self.modechnge() # Calls the function offboard the will select the mode Offboard
             time.sleep(0.2) # Rate 

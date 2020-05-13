@@ -24,6 +24,8 @@ class Landing:
                  self.land_height = value
 
         self.threshold = 0.3                      # Can be changed in params.yaml
+        self.down_sensor_distance = 0
+ 
 
         rospy.init_node("Landing_node")
         self.imu_sub = rospy.Subscriber("/mavros/imu/data", Imu, self.imu_callback) 
@@ -33,7 +35,7 @@ class Landing:
         self.landService = rospy.ServiceProxy('/mavros/cmd/land', CommandTOL)
         subscribed_topic_d = "/sonarTP_D"
         self.down_sensor = rospy.Subscriber("/sonarTP_D", Range, self.cb_down_sensor)
-
+        
 
 
 
@@ -113,6 +115,12 @@ class Landing:
             return False
 
 
+    def cb_down_sensor (self, msg):
+        self.down_sensor_distance = msg.range 
+
+
+
+
     def start(self): # First with Offboard mode, put the drone in a certain alttitude. When the drone is in that position or lower, lands it. 
 
         for i in range(10): # Waits 5 seconds for initialization
@@ -129,7 +137,7 @@ class Landing:
 
         self.local_target_pub.publish(self.cur_target_pose) # Publish the drone position we initialited during the first 2 seconds
 
-        while self.local_pose.pose.position.z > (self.land_height + self.threshold) and self.cb_down_sensor > (self.land_height + self.threshold):
+        while self.local_pose.pose.position.z > (self.land_height + self.threshold) and self.down_sensor_distance > (self.land_height + self.threshold):
             self.local_target_pub.publish(self.cur_target_pose)
             time.sleep(0.2)
 
