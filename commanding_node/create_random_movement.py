@@ -74,6 +74,13 @@ class Randommovement():
                 print("Waiting for initialization.")
                 time.sleep(0.5)
 
+        self.create_random_move()
+        time.sleep(4) # Rate 
+
+
+
+    def create_random_move(self):
+
         print("RANDOM MOVE!")
             
         print('IS DIRECTION BLOCKED?')
@@ -177,10 +184,6 @@ class Randommovement():
                         print("Random Movement ---> Forward")
                         rospy.loginfo("Random Movement: Forward!")
                         self.previousMovement = 3
-
-
-        time.sleep(4) # Rate 
-
 
 
     def cb_mavros_state(self, msg):
