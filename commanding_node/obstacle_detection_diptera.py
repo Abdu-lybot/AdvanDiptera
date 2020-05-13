@@ -43,6 +43,20 @@ class UltrasonicSensing():
 
 
 
+    def start(self):
+        for i in range(10): # Waits 5 seconds for initialization
+            if self.current_heading is not None:
+                break
+            else:
+                print("Waiting for initialization.")
+                time.sleep(0.5)
+
+        while rospy.is_shutdown() is False: # While we don't shutdown it, do the loop
+
+            time.sleep(0.1) # Rate 
+
+
+
     def cb_mavros_state(self, msg):
         self.mavros_state = msg.mode
 
@@ -142,16 +156,10 @@ class UltrasonicSensing():
         self.received_imu = True
 
 if __name__ == '__main__':
-    for i in range(10): # Waits 5 seconds for initialization
-        if self.current_heading is not None:
-            break
-        else:
-            print("Waiting for initialization.")
-            time.sleep(0.5)
 
-    while rospy.is_shutdown() is False: # While we don't shutdown it, do the loop
+    sensing = UltrasonicSensing()
+    sensing.start()
 
-            time.sleep(0.1) # Rate 
 
 
 
