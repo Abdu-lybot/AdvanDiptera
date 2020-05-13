@@ -8,7 +8,7 @@ from gpio_diptera import Rpi_gpio_comm as Gpio_start
 from gpio_clean import Rpi_gpio_comm_off as Gpio_stop
 
 
-class Arming_Modechng():
+class Disarming_Modechng():
 
     def __init__(self):
         self.yamlpath = '/home/lybot/AdvanDiptera/src/commanding_node/params/arm_params.yaml'
@@ -116,7 +116,7 @@ class Arming_Modechng():
 
 if __name__ == '__main__':
     try:
-        disarm = Arming_Modechng()
+        disarm = Disarming_Modechng()
         disarm.start()
         Gpio_stop.start()
         time.sleep(3.5)

@@ -35,6 +35,8 @@ class Landing:
         self.landService = rospy.ServiceProxy('/mavros/cmd/land', CommandTOL)
         subscribed_topic_d = "/sonarTP_D"
         self.down_sensor = rospy.Subscriber("/sonarTP_D", Range, self.cb_down_sensor)
+
+
         
 
 
