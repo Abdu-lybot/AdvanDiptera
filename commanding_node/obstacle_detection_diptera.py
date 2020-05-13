@@ -17,6 +17,9 @@ class UltrasonicSensing():
 
 
     def __init__(self):
+
+
+        rospy.init_node("Obstacle_detection_node")
         self.state = str
         subscribed_topic_state= "/mavros/state"
         self.mavros_sub = rospy.Subscriber(subscribed_topic_state, State, self.cb_mavros_state)

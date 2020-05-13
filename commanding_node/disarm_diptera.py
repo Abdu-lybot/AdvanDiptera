@@ -20,7 +20,7 @@ class Arming_Modechng():
 
         self.down_sensor_distance = 0
 
-        rospy.init_node("Arming_safety_node")
+        rospy.init_node("Disarming_safety_node")
         self.local_pose_sub = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.local_pose_callback)
         self.imu_sub = rospy.Subscriber("/mavros/imu/data", Imu,self.imu_callback) 
         self.armService = rospy.ServiceProxy('/mavros/cmd/arming', CommandBool)
