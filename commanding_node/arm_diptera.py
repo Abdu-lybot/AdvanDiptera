@@ -14,19 +14,19 @@ from gpio_clean import Rpi_gpio_comm_off as Gpio_stop
 class Arming_Modechng():
 
     def __init__(self):
-        self.yamlpath = '/home/lybot/AdvanDiptera/src/commanding_node/params/arm_params.yaml'
+        self.yamlpath = '/home/ubuntu/AdvanDiptera/src/commanding_node/params/arm_params.yaml'
         with open(self.yamlpath) as file:
-            data = yaml.load(file, Loader=yaml.FullLoader)
+            data = yaml.load(file)
             for key, value in data.items():
-                if key == "construct_target":
-                    self.current_heading = value
+                #if key == "construct_target":
+                #    self.current_heading = value
                 if key == "initial_x_pos":
                     self.init_x = value
                 if key == "initial_y_pos":
                     self.init_y = value
                 if key == "initial_z_pos":
                     self.init_z = value
-
+        self.current_heading = int
         rospy.init_node("Arming_safety_node")
         self.imu_sub = rospy.Subscriber("/mavros/imu/data", Imu,self.imu_callback)
         self.armService = rospy.ServiceProxy('/mavros/cmd/arming', CommandBool)
@@ -43,7 +43,7 @@ class Arming_Modechng():
         return rotate_z_rad
 
     def imu_callback(self, msg):
-        global global_imu, current_heading
+        global global_imu
         self.imu = msg
         self.current_heading = self.q2yaw(self.imu.orientation) # Transforms q into degrees of yaw
         self.received_imu = True
