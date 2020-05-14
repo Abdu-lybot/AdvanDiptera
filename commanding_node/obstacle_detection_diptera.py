@@ -21,6 +21,10 @@ class UltrasonicSensing():
 
 
         rospy.init_node("Obstacle_detection_node")
+
+        self.min_distance_to_evit = 1 # Put in the yaml file
+
+
         self.state = str
         subscribed_topic_state= "/mavros/state"
         self.mavros_sub = rospy.Subscriber(subscribed_topic_state, State, self.cb_mavros_state)
@@ -70,21 +74,21 @@ class UltrasonicSensing():
 
     def cb_forward_sensor(self, sense):
         if (self.state == "HOVER"):
-            for sense.range not in range(0,1):
+            if sense.range < self.min_distance_to_evit:
                 print("no obstacle close to drone")
             else:
                 #move opposite direction with the difference distance
-                diference = 1-sense.range
+                diference = self.min_distance_to_evit - sense.range
                 Basic_movement().moving_back(diference)
                 rospy.logwarn("Avoiding Front Obstacle")
 
     def cb_right_sensor(self,sense):
         if (self.state == "HOVER"):
-            for sense.range not in range(0,1):
+            if sense.range < self.min_distance_to_evit:
                 print("no obstacle close to drone")
             else:
                 #move opposite direction with the difference distance
-                diference = 1-sense.range
+                diference = self.min_distance_to_evit - sense.range
 
                 Basic_movement().moving_left(diference)
 
@@ -92,11 +96,11 @@ class UltrasonicSensing():
 
     def cb_left_sensor(self,sense):
         if (self.state == "HOVER"):
-            for sense.range not in range(0,1):
+            if sense.range < self.min_distance_to_evit:
                 print("no obstacle close to drone")
             else:
                 #move opposite direction with the difference distance
-                diference = 1-sense.range
+                diference = self.min_distance_to_evit - sense.range
 
                 Basic_movement().moving_right(diference)
 
@@ -104,11 +108,11 @@ class UltrasonicSensing():
 
     def cb_back_sensor(self,sense):
         if (self.state == "HOVER"):
-            for sense.range not in range(0,1):
+            if sense.range < self.min_distance_to_evit:
                 print("no obstacle close to drone")
             else:
                 #move opposite direction with the difference distance
-                diference = 1-sense.range
+                diference = self.min_distance_to_evit - sense.range
 
                 Basic_movement().moving_forward(diference)
 
@@ -116,11 +120,11 @@ class UltrasonicSensing():
 
     def cb_down_sensor(self,sense):
         if (self.state == "HOVER"):
-            for sense.range not in range(0,1):
+            if sense.range < self.min_distance_to_evit:
                 print("no obstacle close to drone")
             else:
                 #move opposite direction with the difference distance
-                diference = 1-sense.range
+                diference = self.min_distance_to_evit - sense.range
 
                 Basic_movement().moving_up(diference)
  

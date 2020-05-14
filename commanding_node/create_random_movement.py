@@ -31,7 +31,7 @@ class Randommovement():
         self.blockingMovementForward = False
 
 
-        self.min_distance_to_block = 1.5
+        self.min_distance_to_block = 1.5 # Put in the yaml file
 
 
         self.yamlpath = '/home/lybot/AdvanDiptera/src/commanding_node/params/arm_params.yaml'
