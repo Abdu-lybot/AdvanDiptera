@@ -30,6 +30,10 @@ class Randommovement():
         self.blockingMovementBack = False
         self.blockingMovementForward = False
 
+
+        self.min_distance_to_block = 1.5
+
+
         self.yamlpath = '/home/lybot/AdvanDiptera/src/commanding_node/params/arm_params.yaml'
         with open(self.yamlpath) as file:
             data = yaml.load(file, Loader=yaml.FullLoader)
@@ -176,38 +180,34 @@ class Randommovement():
 
     def cb_forward_sensor(self, sense):
         if (self.state == "HOVER"):
-            for sense.range not in range(0,1.5):
+            if sense.range < self.min_distance_to_block:
                 print("no obstacle close to drone")
                 self.blockingMovementForward = False
             else:
-                #move opposite direction with the difference distance
                 self.blockingMovementForward = True
 
     def cb_right_sensor(self,sense):
         if (self.state == "HOVER"):
-            for sense.range not in range(0,1.5):
+            if sense.range < self.min_distance_to_block:
                 print("no obstacle close to drone")
                 self.blockingMovementRight = False
             else:
-                #move opposite direction with the difference distance
                 self.blockingMovementRight = True
 
     def cb_left_sensor(self,sense):
         if (self.state == "HOVER"):
-            for sense.range not in range(0,1.5):
+            if sense.range < self.min_distance_to_block:
                 print("no obstacle close to drone")
                 self.blockingMovementLeft = False
             else:
-                #move opposite direction with the difference distance
                 self.blockingMovementLeft = True 
 
     def cb_back_sensor(self,sense):
         if (self.state == "HOVER"):
-            for sense.range not in range(0,1.5):
+            if sense.range < self.min_distance_to_block:
                 print("no obstacle close to drone")
                 self.blockingMovementBack = False
             else:
-                #move opposite direction with the difference distance
                 self.blockingMovementBack = True
 
 
