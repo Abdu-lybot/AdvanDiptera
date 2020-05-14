@@ -11,7 +11,7 @@ import yaml
 from gpio_diptera import Rpi_gpio_comm as Gpio_start
 from gpio_clean import Rpi_gpio_comm_off as Gpio_stop
 
-from move_drone import Move_Drone as Basic_movement
+from Diptera_move_drone import Move_Drone as Basic_movement
 
 class Landing:
 
