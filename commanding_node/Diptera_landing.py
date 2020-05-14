@@ -11,10 +11,7 @@ import yaml
 from sensor_msgs.msg import Range
 from std_msgs.msg import Float32, Float64, String
 
-
-
-
-from move_drone import Move_Drone as Basic_movement
+from Diptera_move_drone import Move_Drone as Basic_movement
 
 class Landing:
 
