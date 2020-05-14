@@ -67,12 +67,14 @@ class Move_Drone():
             else:
                 print("Waiting for initialization.")
                 time.sleep(0.5)
-
+    
+    # Moves to a determinate location
     def start(self, x, y, z, yaw, yaw_rate = 1):
         self.waiting_initialization()
         self.cur_target_pose = self.construct_target(x, y, z, yaw, yaw_rate)
         self.local_target_pub.publish(self.cur_target_pose) 
 
+    # Moves a determinate distance
     def move_in_x(self, distance):
         self.waiting_initialization()
         self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x + distance, self.local_pose.pose.position.y, self.local_pose.pose.position.z, self.current_heading)
@@ -83,11 +85,12 @@ class Move_Drone():
         self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x, self.local_pose.pose.position.y + distance, self.local_pose.pose.position.z, self.current_heading)
         self.local_target_pub.publish(self.cur_target_pose) 
 
-    def move_in_z(self, distance):
+    def move_in_z_distance(self, distance):
         self.waiting_initialization()
         self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x, self.local_pose.pose.position.y, self.local_pose.pose.position.z + distance, self.current_heading)
         self.local_target_pub.publish(self.cur_target_pose) 
-            
+    
+    # Moves in a determined direction        
     def moving_forward(self, distance):
         self.move_in_x(distance)
 
@@ -106,6 +109,21 @@ class Move_Drone():
     def moving_down(self, distance):
         self.move_in_z(-distance)
 
+    # Moves to a determinate location
+    def move_to_x(self, x_location):
+        self.waiting_initialization()
+        self.cur_target_pose = self.construct_target(x_location, self.local_pose.pose.position.y, self.local_pose.pose.position.z, self.current_heading)
+        self.local_target_pub.publish(self.cur_target_pose) 
+
+    def move_to_y(self, y_location):
+        self.waiting_initialization()
+        self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x, y_location, self.local_pose.pose.position.z, self.current_heading)
+        self.local_target_pub.publish(self.cur_target_pose) 
+
+    def move_to_z(self, z_location):
+        self.waiting_initialization()
+        self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x, self.local_pose.pose.position.y, z_location, self.current_heading)
+        self.local_target_pub.publish(self.cur_target_pose) 
 
 
 

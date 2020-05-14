@@ -11,7 +11,7 @@ import time
 import yaml
 from gpio_diptera import Rpi_gpio_comm as Gpio_start
 from gpio_clean import Rpi_gpio_comm_off as Gpio_stop
-
+from move_drone import Move_Drone as Basic_movement
 
 class Randommovement():
 
@@ -66,7 +66,8 @@ class Randommovement():
 
 
 
-    def start(self):
+    def start(self, number_of_movements):
+
         for i in range(10): # Waits 5 seconds for initialization
             if self.current_heading is not None:
                 break
@@ -74,8 +75,9 @@ class Randommovement():
                 print("Waiting for initialization.")
                 time.sleep(0.5)
 
-        self.create_random_move()
-        time.sleep(4) # Rate 
+        for i in range (number_of_movements):
+            self.create_random_move()
+            time.sleep(4) # Rate 
 
 
 
@@ -96,40 +98,28 @@ class Randommovement():
 
         elif self.previousMovement == 0:
             if self.blockingMovementRight == False: 
-                self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x,
-                                                             self.local_pose.pose.position.y - self.moving_random_distance,
-                                                             self.local_pose.pose.position.z,
-                                                             self.current_heading)
+                Basic_movement().move_right(self.moving_random_distance)
                 print("Random Movement ---> Still Right")
                 rospy.loginfo("Random Movement: Still Right!")
                 exitloop = True
 
         elif self.previousMovement == 1:
             if self.blockingMovementLeft == False: 
-                self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x,
-                                                             self.local_pose.pose.position.y + self.moving_random_distance,
-                                                             self.local_pose.pose.position.z,
-                                                             self.current_heading)
+                Basic_movement().move_left(self.moving_random_distance) 
                 print("Random Movement ---> Still Left")
                 rospy.loginfo("Random Movement: Still Left!")
                 exitloop = True
 
         elif self.previousMovement == 2:
             if self.blockingMovementBack == False: 
-                self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x - self.moving_random_distance,
-                                                             self.local_pose.pose.position.y,
-                                                             self.local_pose.pose.position.z,
-                                                             self.current_heading)
+                Basic_movement().move_back(self.moving_random_distance)
                 print("Random Movement ---> Still Back")
                 rospy.loginfo("Random Movement: Still Back!")
                 exitloop = True
 
         elif self.previousMovement == 3:
             if self.blockingMovementForward == False: 
-                self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x + self.moving_random_distance,
-                                                             self.local_pose.pose.position.y,
-                                                             self.local_pose.pose.position.z,
-                                                             self.current_heading)
+                Basic_movement().move_forward(self.moving_random_distance)
                 print("Random Movement ---> Still Forward")
                 rospy.loginfo("Random Movement: Still Forward!")
                 exitloop = True
@@ -144,10 +134,7 @@ class Randommovement():
                 if value == 0:
                     if self.blockingMovementRight == False:
                         exitloop = True
-                        self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x,
-                                                                     self.local_pose.pose.position.y - self.moving_random_distance,
-                                                                     self.local_pose.pose.position.z,
-                                                                     self.current_heading)
+                        Basic_movement().move_right(self.moving_random_distance)
                         print("Random Movement ---> Right")
                         rospy.loginfo("Random Movement: Right!")
                         self.previousMovement = 0
@@ -155,10 +142,7 @@ class Randommovement():
                 elif value == 1:
                     if self.blockingMovementLeft == False:
                         exitloop = True
-                        self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x,
-                                                                     self.local_pose.pose.position.y + self.moving_random_distance,
-                                                                     self.local_pose.pose.position.z,
-                                                                     self.current_heading)
+                        Basic_movement().move_left(self.moving_random_distance)
                         print("Random Movement ---> Left")
                         rospy.loginfo("Random Movement: Left!")
                         self.previousMovement = 1
@@ -166,10 +150,7 @@ class Randommovement():
                 elif value == 2:
                     if self.blockingMovementBack == False:
                         exitloop = True
-                        self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x - self.moving_random_distance,
-                                                                     self.local_pose.pose.position.y,
-                                                                     self.local_pose.pose.position.z,
-                                                                     self.current_heading)
+                        Basic_movement().move_back(self.moving_random_distance)
                         print("Random Movement ---> Back")
                         rospy.loginfo("Random Movement: Back!")
                         self.previousMovement = 2
@@ -177,10 +158,7 @@ class Randommovement():
                 elif value == 3:
                     if self.blockingMovementForward == False:
                         exitloop = True
-                        self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x + self.moving_random_distance,
-                                                                     self.local_pose.pose.position.y,
-                                                                     self.local_pose.pose.position.z,
-                                                                     self.current_heading)
+                        Basic_movement().move_forward(self.moving_random_distance)
                         print("Random Movement ---> Forward")
                         rospy.loginfo("Random Movement: Forward!")
                         self.previousMovement = 3
@@ -232,25 +210,6 @@ class Randommovement():
                 #move opposite direction with the difference distance
                 self.blockingMovementBack = True
 
-
-    def construct_target(self, x, y, z, yaw, yaw_rate = 1): 
-        target_raw_pose = PositionTarget() # We will fill the following message with our values: http://docs.ros.org/api/mavros_msgs/html/msg/PositionTarget.html
-        target_raw_pose.header.stamp = rospy.Time.now()
-
-        target_raw_pose.coordinate_frame = 9 
-
-        target_raw_pose.position.x = x
-        target_raw_pose.position.y = y
-        target_raw_pose.position.z = z
-
-        target_raw_pose.type_mask = PositionTarget.IGNORE_VX + PositionTarget.IGNORE_VY + PositionTarget.IGNORE_VZ \
-                                    + PositionTarget.IGNORE_AFX + PositionTarget.IGNORE_AFY + PositionTarget.IGNORE_AFZ \
-                                    + PositionTarget.FORCE
-
-        target_raw_pose.yaw = yaw
-        target_raw_pose.yaw_rate = yaw_rate
-
-        return target_raw_pose
 
     def local_pose_callback(self, msg): 
         self.local_pose = msg
