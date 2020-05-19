@@ -16,16 +16,16 @@ class Move_Drone():
         self.attitude_target_pub = rospy.Publisher('mavros/setpoint_raw/attitude', AttitudeTarget, queue_size=10)
 
 
-    def construct_target(self, body_x = 0, body_y = 0, body_z = 0, thrust = 0.2):
+    def construct_target(self, body_x = 0, body_y = 0, body_z = 0, thrust = 1):
         target_raw_attitude = AttitudeTarget()  # We will fill the following message with our values: http://docs.ros.org/api/mavros_msgs/html/msg/PositionTarget.html
         target_raw_attitude.header.stamp = rospy.Time.now()
-        target_raw_attitude.orientation. = self.imu.orientation
-        #target_raw_attitude.type_mask = AttitudeTarget.IGNORE_ROLL_RATE + AttitudeTarget.IGNORE_PITCH_RATE + AttitudeTarget.IGNORE_YAW_RATE \
-        #                            + AttitudeTarget.IGNORE_THRUST + AttitudeTarget.IGNORE_ATTITUDE
+        #target_raw_attitude.orientation. = self.imu.orientation
+        target_raw_attitude.type_mask = AttitudeTarget.IGNORE_ROLL_RATE + AttitudeTarget.IGNORE_PITCH_RATE + AttitudeTarget.IGNORE_YAW_RATE \
+                                    + AttitudeTarget.IGNORE_ATTITUDE
 
-        target_raw_attitude.body_rate.x = body_x # ROLL_RATE
-        target_raw_attitude.body_rate.y = body_y # PITCH_RATE
-        target_raw_attitude.body_rate.z = body_z # YAW_RATE
+        #target_raw_attitude.body_rate.x = body_x # ROLL_RATE
+        #target_raw_attitude.body_rate.y = body_y # PITCH_RATE
+        #target_raw_attitude.body_rate.z = body_z # YAW_RATE
         target_raw_attitude.thrust = thrust
         return target_raw_attitude
 
@@ -49,6 +49,11 @@ class Move_Drone():
             else:
                 print("Waiting for initialization.")
                 time.sleep(0.5)
+
+    def test(self):
+        self.cur_target_attitude = self.construct_target()
+        self.self.attitude_target_pub.publish(self.cur_target_attitude)   
+
     
     # Moves to a determinate location
     def start(self, distance, body_x, body_y, body_z, thrust):

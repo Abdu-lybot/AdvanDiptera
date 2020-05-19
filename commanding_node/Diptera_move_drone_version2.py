@@ -37,6 +37,7 @@ class Move_Drone():
 
         return target_raw_pose
 
+
     def cb_local_pose(self, msg):
         self.local_pose = msg
         self.local_enu_position = msg
@@ -116,6 +117,21 @@ class Move_Drone():
     def moving_down(self, distance):
         self.move_in_z(-distance)
 
+
+########################################TEST#########################################
+    def test_x(self):
+        self.cur_target_pose = self.construct_target(1, 0, 0, self.current_heading)
+        self.local_target_pub.publish(self.cur_target_pose)
+
+    def test_y(self):
+        self.cur_target_pose = self.construct_target(0, 1, 0, self.current_heading)
+        self.local_target_pub.publish(self.cur_target_pose)
+
+    def test_z(self):
+        self.cur_target_pose = self.construct_target(0, 0, 1, self.current_heading)
+        self.local_target_pub.publish(self.cur_target_pose)
+
+
     # Moves to a determinate location
 '''
     def move_to_x(self, x_location):
@@ -133,5 +149,9 @@ class Move_Drone():
         self.cur_target_pose = self.construct_target(self.local_pose.pose.position.x, self.local_pose.pose.position.y, z_location, self.current_heading)
         self.local_target_pub.publish(self.cur_target_pose) 
 '''
+
+
+
+
 
 
