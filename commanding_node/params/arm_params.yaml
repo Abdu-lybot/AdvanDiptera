@@ -11,3 +11,4 @@ Hover_sensor_altitude: 1.2
 Hover_sensor_altitude_max: 1.5
 Hover_sensor_altitude_min: 1
 Landing_sensor_altitude_min: 0.3
+Secure_landing_time: 2
