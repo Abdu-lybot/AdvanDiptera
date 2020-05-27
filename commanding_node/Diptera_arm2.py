@@ -34,6 +34,8 @@ class Arming_Modechng():
                     self.hover_thrust = value
                 if key == "Hover_time":
                     self.hover_time = value
+                if key == "Secure_landing_time":
+                    self.Secure_landing_time = value
                 if key == "Hover_sensor_altitude":
                     self.hover_sensor_altitude = value
                 if key == "Hover_sensor_altitude_max":
@@ -139,10 +141,25 @@ class Arming_Modechng():
         target_raw_attitude.thrust = thrust
         return target_raw_attitude
     '''
-    
+    def secure_landing_phase_rec(self, thrust, time_flying):
+        if time_flying == 0:
+            return True
+        else:
+            target_raw_attitude = AttitudeTarget()
+            target_raw_attitude.header.stamp = rospy.Time.now()
+            target_raw_attitude.orientation = self.imu.orientation
+            target_raw_attitude.body_rate.x = 0 # ROLL_RATE
+            target_raw_attitude.body_rate.y = 0 # PITCH_RATE
+            target_raw_attitude.body_rate.z = 0 # YAW_RATE
+            target_raw_attitude.thrust = thrust - self.Deaccumulating_thrust
+            self.attitude_target_pub.publish(target_raw_attitude)
+            time_flying = time_flying - 0.02
+            time.sleep(0.02)  #was 0.005 (the recursion depth is depending on velocity)
+            return self.secure_landing_phase_rec(thrust, beh_type, time_flying)   #bublishing a constant parameter "not updating thrust argument"
     #----------------------recursive functions----------------------------
     def landing_rec(self, thrust ,beh_type):
         if self.down_sensor_distance <= self.landing_sensor_altitude_min & beh_type == "LANDING":  #we can use also (self.local_pose.pose.position.z <= self.landing_sensor_altitude_min)
+            self.secure_landing_phase_rec(thrust, self.Secure_landing_time) 
             print ("the drone has landed")
             beh_type = "Landed"
             self.disarm()
@@ -177,7 +194,7 @@ class Arming_Modechng():
             target_raw_attitude.body_rate.z = 0 # YAW_RATE
             target_raw_attitude.thrust = self.hover_thrust
             self.attitude_target_pub.publish(target_raw_attitude)
-            time_flying = self.hover_time - 0.02
+            time_flying = time_flying - 0.02
             time.sleep(0.02) #was 0.005   (now 50hz ,500loops)
             return self.lift_off_rec(thrust ,beh_type ,time_flying)
         else:
@@ -190,7 +207,7 @@ class Arming_Modechng():
             target_raw_attitude.body_rate.z = 0 # YAW_RATE
             target_raw_attitude.thrust = thrust + self.accumulating_thrust
             self.attitude_target_pub.publish(target_raw_attitude)
-            time_flying = self.hover_time - 0.02
+            time_flying = time_flying - 0.02
             time.sleep(0.02) # was 0.005 (now 50hz ,500 loops ,5sec)
             return self.lift_off_rec(target_raw_attitude.thrust ,beh_type ,time_flying)
 
