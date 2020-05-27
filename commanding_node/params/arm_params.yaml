@@ -2,3 +2,12 @@ current_heading:
 initial_x_pos: 0
 initial_y_pos: 0
 initial_z_pos: 0
+initial_thrust: 0
+accumulating_thrust: 0.0005   #0.5 hover throttle / 0.0005 acc = 1000 loops ,1000*0.005 time each loop (200hz)= 0.5sec
+Deaccumulating_thrust: 0.005
+Hover_thrust: 0.5
+Hover_time: 10
+Hover_sensor_altitude: 1.2
+Hover_sensor_altitude_max: 1.5
+Hover_sensor_altitude_min: 1
+Landing_sensor_altitude_min: 0.3

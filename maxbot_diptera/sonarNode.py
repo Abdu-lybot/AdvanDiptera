@@ -31,10 +31,10 @@ class sonar():
         self.distance_publisher_left = rospy.Publisher(topic_name_l, Range, queue_size=5)
         self.r = rospy.Rate(2)
         self.serialPort0 = "/dev/ttyUSB0"
-        self.serialPort1 = "/dev/ttyUSB1"
-        self.serialPort2 = "/dev/ttyUSB2"
-        self.serialPort3 = "/dev/ttyUSB3"
-        self.serialPort4 = "/dev/ttyUSB4"
+        self.serialPort1 = "/dev/ttyUSB0"
+        self.serialPort2 = "/dev/ttyUSB0"
+        self.serialPort3 = "/dev/ttyUSB0"
+        self.serialPort4 = "/dev/ttyUSB0"
 
         self.maxRange = 2000  # change for 5m vs 10m sensor
         self.sleepTime = 0.5
