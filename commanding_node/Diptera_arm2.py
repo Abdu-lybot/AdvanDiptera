@@ -190,6 +190,7 @@ class Arming_Modechng():
             target_raw_attitude.body_rate.z = 0 # YAW_RATE
             target_raw_attitude.thrust = thrust + self.accumulating_thrust
             self.attitude_target_pub.publish(target_raw_attitude)
+            time_flying = self.hover_time - 0.02
             time.sleep(0.02) # was 0.005 (now 50hz ,500 loops ,5sec)
             return self.lift_off_rec(target_raw_attitude.thrust ,beh_type ,time_flying)
 
