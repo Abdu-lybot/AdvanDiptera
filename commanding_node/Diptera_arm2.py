@@ -13,8 +13,6 @@ from sensor_msgs.msg import Range
 from geometry_msgs.msg import PoseStamped, Twist
 
 
-
-
 class Arming_Modechng():
 
     def __init__(self):
@@ -81,7 +79,16 @@ class Arming_Modechng():
         self.imu = msg
         self.current_heading = self.q2yaw(self.imu.orientation) # Transforms q into degrees of yaw
         self.received_imu = True
+        
+    def euler2quaternion(self, roll = 0, pitch = 0, yaw = 0):
+        qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+        qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
+        qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
+        qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
 
+        return [qx, qy, qz, qw]
+        
+#----------------------arming services----------------------------
     def arm(self):
         if self.armService(True):
             rospy.loginfo("AdvanDiptera is Armed")
@@ -97,7 +104,8 @@ class Arming_Modechng():
         else:
             rospy.loginfo("Failed to disarm AdvanDiptera")
             return False
-
+        
+#----------------------messages constructor----------------------------
     def construct_target(self, x, y, z, yaw, yaw_rate=1):
         target_raw_pose = PositionTarget()  # We will fill the following message with our values: http://docs.ros.org/api/mavros_msgs/html/msg/PositionTarget.html
         target_raw_pose.header.stamp = rospy.Time.now()
@@ -116,6 +124,7 @@ class Arming_Modechng():
         target_raw_pose.yaw_rate = yaw_rate
 
         return target_raw_pose
+    
     '''    #we should use this in our functions rather then rewriting the message
     def construct_target_attitude(self, body_x = 0, body_y = 0, body_z = 0, thrust = 0.3):
         target_raw_attitude = AttitudeTarget()  # We will fill the following message with our values: http://docs.ros.org/api/mavros_msgs/html/msg/PositionTarget.html
@@ -130,8 +139,8 @@ class Arming_Modechng():
         target_raw_attitude.thrust = thrust
         return target_raw_attitude
     '''
-
-
+    
+    #----------------------recursive functions----------------------------
     def landing_rec(self, thrust ,beh_type):
         if self.down_sensor_distance <= self.landing_sensor_altitude_min & beh_type == "LANDING":  #we can use also (self.local_pose.pose.position.z <= self.landing_sensor_altitude_min)
             print ("the drone has landed")
@@ -141,8 +150,10 @@ class Arming_Modechng():
         else:
             target_raw_attitude = AttitudeTarget()
             target_raw_attitude.header.stamp = rospy.Time.now()
-            target_raw_attitude.type_mask = AttitudeTarget.IGNORE_ROLL_RATE + AttitudeTarget.IGNORE_PITCH_RATE + AttitudeTarget.IGNORE_YAW_RATE \
-                                            + AttitudeTarget.IGNORE_ATTITUDE
+            target_raw_attitude.orientation = self.imu.orientation
+            target_raw_attitude.body_rate.x = 0 # ROLL_RATE
+            target_raw_attitude.body_rate.y = 0 # PITCH_RATE
+            target_raw_attitude.body_rate.z = 0 # YAW_RATE
             beh_type = "LANDING"
             target_raw_attitude.thrust = thrust - self.Deaccumulating_thrust
             self.attitude_target_pub.publish(target_raw_attitude)
@@ -160,8 +171,10 @@ class Arming_Modechng():
             beh_type = 'HOVER'
             target_raw_attitude = AttitudeTarget()
             target_raw_attitude.header.stamp = rospy.Time.now()
-            target_raw_attitude.type_mask = AttitudeTarget.IGNORE_ROLL_RATE + AttitudeTarget.IGNORE_PITCH_RATE + AttitudeTarget.IGNORE_YAW_RATE \
-                                            + AttitudeTarget.IGNORE_ATTITUDE
+            target_raw_attitude.orientation = self.imu.orientation
+            target_raw_attitude.body_rate.x = 0 # ROLL_RATE
+            target_raw_attitude.body_rate.y = 0 # PITCH_RATE
+            target_raw_attitude.body_rate.z = 0 # YAW_RATE
             target_raw_attitude.thrust = self.hover_thrust
             self.attitude_target_pub.publish(target_raw_attitude)
             time_flying = self.hover_time - 0.02
@@ -171,11 +184,13 @@ class Arming_Modechng():
             print("Lifting the drone up slowly")
             target_raw_attitude = AttitudeTarget()
             target_raw_attitude.header.stamp = rospy.Time.now()
-            target_raw_attitude.type_mask = AttitudeTarget.IGNORE_ROLL_RATE + AttitudeTarget.IGNORE_PITCH_RATE + AttitudeTarget.IGNORE_YAW_RATE \
-                                            + AttitudeTarget.IGNORE_ATTITUDE
+            target_raw_attitude.orientation = self.imu.orientation
+            target_raw_attitude.body_rate.x = 0 # ROLL_RATE
+            target_raw_attitude.body_rate.y = 0 # PITCH_RATE
+            target_raw_attitude.body_rate.z = 0 # YAW_RATE
             target_raw_attitude.thrust = thrust + self.accumulating_thrust
             self.attitude_target_pub.publish(target_raw_attitude)
-            time.sleep(0.01) # was 0.005 (now 50hz ,500 loops ,5sec)
+            time.sleep(0.02) # was 0.005 (now 50hz ,500 loops ,5sec)
             return self.lift_off_rec(target_raw_attitude.thrust ,beh_type ,time_flying)
 
 
@@ -213,12 +228,9 @@ class Arming_Modechng():
             #self.attitude_target_pub.publish(self.cur_target_attitude)
             self.offboard_state = self.modechnge()
             time.sleep(0.1)
-
-
-
-
-
             
+            
+#####################################################################################################            
 if __name__ == '__main__':
 
     try:
