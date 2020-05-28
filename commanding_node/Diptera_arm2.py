@@ -46,8 +46,8 @@ class Arming_Modechng():
                     self.landing_sensor_altitude_min = value
                 if key == "Deaccumulating_thrust":
                     self.Deaccumulating_thrust = value
-
-
+        self.down_sensor_distance = 300 
+        self.printing_value = 0 
         self.current_heading = None
         rospy.init_node("Arming_safety_node")
         self.imu_sub = rospy.Subscriber("/mavros/imu/data", Imu,self.imu_callback)
@@ -134,7 +134,6 @@ class Arming_Modechng():
         #target_raw_attitude.orientation. = self.imu.orientation
         target_raw_attitude.type_mask = AttitudeTarget.IGNORE_ROLL_RATE + AttitudeTarget.IGNORE_PITCH_RATE + AttitudeTarget.IGNORE_YAW_RATE \
                                     + AttitudeTarget.IGNORE_ATTITUDE
-
         target_raw_attitude.body_rate.x = body_x # ROLL_RATE
         target_raw_attitude.body_rate.y = body_y # PITCH_RATE
         target_raw_attitude.body_rate.z = body_z # YAW_RATE
@@ -142,7 +141,7 @@ class Arming_Modechng():
         return target_raw_attitude
     '''
     def secure_landing_phase_rec(self, thrust, time_flying):
-        if time_flying == 0:
+        if time_flying <= 0:
             return True
         else:
             target_raw_attitude = AttitudeTarget()
@@ -155,10 +154,10 @@ class Arming_Modechng():
             self.attitude_target_pub.publish(target_raw_attitude)
             time_flying = time_flying - 0.02
             time.sleep(0.02)  #was 0.005 (the recursion depth is depending on velocity)
-            return self.secure_landing_phase_rec(thrust, beh_type, time_flying)   #bublishing a constant parameter "not updating thrust argument"
+            return self.secure_landing_phase_rec(thrust, time_flying)   #bublishing a constant parameter "not updating thrust argument"
     #----------------------recursive functions----------------------------
     def landing_rec(self, thrust ,beh_type):
-        if self.down_sensor_distance <= self.landing_sensor_altitude_min & beh_type == "LANDING":  #we can use also (self.local_pose.pose.position.z <= self.landing_sensor_altitude_min)
+        if self.down_sensor_distance <= self.landing_sensor_altitude_min and beh_type == "LANDING":  #we can use also (self.local_pose.pose.position.z <= self.landing_sensor_altitude_min)
             self.secure_landing_phase_rec(thrust, self.Secure_landing_time) 
             print ("the drone has landed")
             beh_type = "Landed"
@@ -178,7 +177,7 @@ class Arming_Modechng():
             return self.landing_rec(thrust, beh_type)   #bublishing a constant parameter "not updating thrust argument"
 
     def lift_off_rec(self, thrust ,beh_type ,time_flying):
-        if time_flying == 0 and beh_type == "HOVER":
+        if time_flying <= 0: #and beh_type == "HOVER":
             print ("time of hovering has ended")
             beh_type = "LANDING"
             return self.landing_rec(thrust ,beh_type)
