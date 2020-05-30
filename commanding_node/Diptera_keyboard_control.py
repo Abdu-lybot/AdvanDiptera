@@ -45,16 +45,19 @@ class keyboard_control():
         self.imu_sub = rospy.Subscriber("/mavros/imu/data", Imu,self.imu_callback)
         self.countx = 0
         self.county = 0
+        self.countz = 0
         self.count_thrust = 0
         self.acc_x = 0
         self.acc_y = 0
+        self.acc_z = 0
         self.acc_thrust = 0
+        self.movement = str
         self.moveBindings = {
-            'w': (0, 0.1, 0, 0),   #pith forward
+            'w': (0, 0.1, 0, 0),    #pith forward
             's': (0, -0.1, 0, 0),   #pitch backward
             'd': (0.1, 0, 0, 0 ),   #roll right
             'a': (-0.1, 0, 0, 0),   #roll left
-            'e': (0, 0, 0, 0.1),   #assend +z
+            'e': (0, 0, 0, 0.1),    #assend +z
             'q': (0, 0, 0, -0.01),  #decend -z
             'z': (0, 0, 0.1, 0),    #yaw cw
             'x': (0, 0, -0.1, 0),   #yaw ccw
@@ -96,6 +99,24 @@ class keyboard_control():
     def vels(self, speed,turn):
         return "currently:\tspeed %s\tturn %s " % (speed,turn)
 
+    def print_movement(self,movement ,speed):
+        if movement == 'Forward':
+            print("w is pressed = increasing PITCH by",speed)
+        elif movement == 'Backward':
+            print("s is pressed = increasing PITCH by",speed)
+        elif movement == 'Right':
+            print("d is pressed = increasing ROLL by",speed)
+        elif movement == 'Left':
+            print("a is pressed = increasing ROLL by",speed)
+        elif movement == '+UP':
+            print("e is pressed = increasing THROTTLE by",speed)
+        elif movement == '+Down':
+            print("q is pressed = decreasing THROTTLE by",speed)
+        elif movement == 'yawCW':
+            print("z is pressed = increasing YAW-CW by",speed)
+        elif movement == 'yawCCW':
+            print("x is pressed = increasing YAW-CCW by",speed)
+
 kb = keyboard_control()
 if __name__=="__main__":
     settings = termios.tcgetattr(sys.stdin)
@@ -121,30 +142,46 @@ if __name__=="__main__":
                 if x == 0.1:
                     kb.countx = kb.countx + 0.1
                     kb.acc_x = x + kb.countx
+                    kb.movement = 'Right'
+                    kb.print_movement(kb.movement,kb.acc_x)
                 elif x == -0.1:
                     kb.countx = kb.countx - 0.1
                     kb.acc_x = x + kb.countx
+                    kb.movement = 'Left'
+                    kb.print_movement(kb.movement,kb.acc_x)
                 y = kb.moveBindings[key][1]
                 if y == 0.1:
                     kb.county = kb.county + 0.1
                     kb.acc_y = y + kb.county
+                    kb.movement = 'Forward'
+                    kb.print_movement(kb.movement, kb.acc_y)
                 elif y == -0.1:
                     kb.county = kb.countx - 0.1
                     kb.acc_y = y + kb.county
+                    kb.movement = 'Backward'
+                    kb.print_movement(kb.movement, kb.acc_y)
                 z = kb.moveBindings[key][2]
                 if z == 0.1:
                     kb.countz = kb.countz + 0.1
                     kb.acc_z = z + kb.county
+                    kb.movement = 'yawCW'
+                    kb.print_movement(kb.movement,kb.acc_z)
                 elif z == -0.1:
                     kb.countz = kb.countz - 0.1
                     kb.acc_z = z + kb.countz
+                    kb.movement = 'yawCCW'
+                    kb.print_movement(kb.movement,kb.acc_z)
                 th = kb.moveBindings[key][3]
                 if th == 0.1:
-                        kb.count_thrust = kb.count_thrust + 0.1
-                        kb.acc_thrust = th + kb.count_thrust
+                    kb.count_thrust = kb.count_thrust + 0.1
+                    kb.acc_thrust = th + kb.count_thrust
+                    kb.movement = '+UP'
+                    kb.print_movement(kb.movement,kb.acc_thrust)
                 elif th == -0.01:
-                        kb.count_thrust = kb.count_thrust - 0.01
-                        kb.acc_thrust = th + kb.count_thrust
+                    kb.count_thrust = kb.count_thrust - 0.01
+                    kb.acc_thrust = th + kb.count_thrust
+                    kb.movement = '+Down'
+                    kb.print_movement(kb.movement,kb.acc_thrust)
             elif key in kb.speedBindings.keys():
                 speed = speed * kb.speedBindings[key][0]
                 turn = turn * kb.speedBindings[key][1]
