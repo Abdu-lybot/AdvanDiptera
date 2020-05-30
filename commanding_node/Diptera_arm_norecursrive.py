@@ -46,16 +46,16 @@ class Arming_Modechng():
                     self.landing_sensor_altitude_min = value
                 if key == "Deaccumulating_thrust":
                     self.Deaccumulating_thrust = value
-			    if key == "Time_between_messages":
+		if key == "Time_between_messages":
                     self.Time_between_messages = value
-			    if key == "Landing_thrust":
+		if key == "Landing_thrust":
                     self.Landing_thrust = value	
-			    if key == "Secure_time_landing":
+		if key == "Secure_time_landing":
                     self.Secure_time_landing = value	
-			    if key == "Max_time_landing":
+		if key == "Max_time_landing":
                     self.Max_time_landing = value						
 					
-        self.down_sensor_distance = 300 
+        self.down_sensor_distance = None 
         self.printing_value = 0 
         self.current_heading = None
         rospy.init_node("Arming_safety_node")
@@ -100,8 +100,8 @@ class Arming_Modechng():
         return [qx, qy, qz, qw]
         
     def calculate_recursions(self, total_time):
-	    recursions = total_time/self.Time_between_messages
-        return recursions
+	recursions = total_time/self.Time_between_messages
+        return int(recursions)
 		
 #----------------------arming services----------------------------
     def arm(self):
@@ -156,26 +156,39 @@ class Arming_Modechng():
 
     #----------------------recursive functions----------------------------
 	
-	def secure_landing_phase_rec(self):           # Secure landing part - last cm
-	    self.beh_type = "LANDING"
-	    recursions = calculate_recursions(self.Secure_time_landing)	
+    def secure_landing_phase_rec(self):           # Secure landing part - last cm
+        self.beh_type = "LANDING"
+        recursions = self.calculate_recursions(self.Secure_time_landing)	
         thrust = self.hover_thrust
-		for i in range(recursions):
-		    if thrust <= 0:
-			    break
-		    elif i < 100:
-			    print("Secure hover before landing")
+        for i in range(recursions):
+            if thrust <= 0:
+                break
+            elif i < 100:
+                print("Secure hover before landing")
                 target_raw_attitude = AttitudeTarget()
                 target_raw_attitude.header.stamp = rospy.Time.now()
                 target_raw_attitude.orientation = self.imu.orientation
                 target_raw_attitude.body_rate.x = 0 # ROLL_RATE
                 target_raw_attitude.body_rate.y = 0 # PITCH_RATE
                 target_raw_attitude.body_rate.z = 0 # YAW_RATE
-				thrust = self.hover_thrust
-				target_raw_attitude.thrust = thrust
+                thrust = self.hover_thrust
+                target_raw_attitude.thrust = thrust
                 self.attitude_target_pub.publish(target_raw_attitude)
                 time.sleep(self.Time_between_messages) # was 0.005 (now 50hz ,500 loops ,5sec)
-		    else: 
+
+            elif i < 700:
+                print("Smooth landing")
+                target_raw_attitude = AttitudeTarget()
+                target_raw_attitude.header.stamp = rospy.Time.now()
+                target_raw_attitude.orientation = self.imu.orientation
+                target_raw_attitude.body_rate.x = 0 # ROLL_RATE
+                target_raw_attitude.body_rate.y = 0 # PITCH_RATE
+                target_raw_attitude.body_rate.z = 0 # YAW_RATE
+                thrust = self.hover_thrust - self.Deaccumulating_thrust
+                target_raw_attitude.thrust = thrust
+                self.attitude_target_pub.publish(target_raw_attitude)
+                time.sleep(self.Time_between_messages) # was 0.005 (now 50hz ,500 loops ,5sec)
+            else: 
                 print("Landing")
                 target_raw_attitude = AttitudeTarget()
                 target_raw_attitude.header.stamp = rospy.Time.now()
@@ -183,42 +196,44 @@ class Arming_Modechng():
                 target_raw_attitude.body_rate.x = 0 # ROLL_RATE
                 target_raw_attitude.body_rate.y = 0 # PITCH_RATE
                 target_raw_attitude.body_rate.z = 0 # YAW_RATE
-				target_raw_attitude.thrust = thrust
-				thrust = thrust - self.accumulating_thrust
+                target_raw_attitude.thrust = thrust
+                thrust = thrust - self.accumulating_thrust
                 self.attitude_target_pub.publish(target_raw_attitude)
                 time.sleep(self.Time_between_messages) # was 0.005 (now 50hz ,500 loops ,5sec)	
         self.disarm()
 	
 	
     def landing_rec(self):                       # Landing phase
-	    self.beh_type = "LANDING"
-	    recursions = calculate_recursions(self.Max_time_landing)	
+        self.beh_type = "LANDING"
+        recursions = self.calculate_recursions(self.Max_time_landing)
+        print(recursions)
         thrust = self.hover_thrust
-		for i in range(recursions):
-		    if self.down_sensor_distance <= self.landing_sensor_altitude_min:
-			    break
-		    elif thrust > self.landing_thrust: #and beh_type == "HOVER":
-                print("Lifting the drone up slowly")
+        for i in range(recursions):
+            print self.down_sensor_distance
+            if self.down_sensor_distance <= self.landing_sensor_altitude_min:
+                break
+            elif thrust > self.Landing_thrust: #and beh_type == "HOVER":
+                print("Landing the drone down slowly")
                 target_raw_attitude = AttitudeTarget()
                 target_raw_attitude.header.stamp = rospy.Time.now()
                 target_raw_attitude.orientation = self.imu.orientation
                 target_raw_attitude.body_rate.x = 0 # ROLL_RATE
                 target_raw_attitude.body_rate.y = 0 # PITCH_RATE
                 target_raw_attitude.body_rate.z = 0 # YAW_RATE
-				target_raw_attitude.thrust = thrust
-				thrust = thrust - self.accumulating_thrust
+                target_raw_attitude.thrust = thrust
+                thrust = thrust - self.accumulating_thrust
                 self.attitude_target_pub.publish(target_raw_attitude)
                 time.sleep(self.Time_between_messages) # was 0.005 (now 50hz ,500 loops ,5sec)
-		    elif thrust <= self.landing_thrust: #and beh_type == "HOVER":
-                print("Lifting the drone up slowly")
+            elif thrust <= self.Landing_thrust: #and beh_type == "HOVER":
+                print("Landing the drone down slowly")
                 target_raw_attitude = AttitudeTarget()
                 target_raw_attitude.header.stamp = rospy.Time.now()
                 target_raw_attitude.orientation = self.imu.orientation
                 target_raw_attitude.body_rate.x = 0 # ROLL_RATE
                 target_raw_attitude.body_rate.y = 0 # PITCH_RATE
                 target_raw_attitude.body_rate.z = 0 # YAW_RATE
-				target_raw_attitude.thrust = self.landing_thrust
-				thrust = self.landing_thrust
+                target_raw_attitude.thrust = self.Landing_thrust
+                thrust = self.Landing_thrust
                 self.attitude_target_pub.publish(target_raw_attitude)
                 time.sleep(self.Time_between_messages) # was 0.005 (now 50hz ,500 loops ,5sec)				
         self.secure_landing_phase_rec()
@@ -227,9 +242,11 @@ class Arming_Modechng():
 
 
     def lift_off_rec(self, thrust, time_flying):
-	    recursions = calculate_recursions(time_flying)
-		self.beh_type = "TAKE OFF"
-		for i in range(recursions):
+        recursions = self.calculate_recursions(time_flying)
+        print(recursions)
+	self.beh_type = "TAKE OFF"
+	for i in range(recursions):
+            print (i)
             if self.beh_type == "TAKE OFF" and thrust < self.hover_thrust: #and beh_type == "HOVER":
                 print("Lifting the drone up slowly")
                 target_raw_attitude = AttitudeTarget()
@@ -238,68 +255,68 @@ class Arming_Modechng():
                 target_raw_attitude.body_rate.x = 0 # ROLL_RATE
                 target_raw_attitude.body_rate.y = 0 # PITCH_RATE
                 target_raw_attitude.body_rate.z = 0 # YAW_RATE
-				target_raw_attitude.thrust = thrust
-				thrust = thrust + self.accumulating_thrust
+                target_raw_attitude.thrust = thrust
+                thrust = thrust + self.accumulating_thrust
                 self.attitude_target_pub.publish(target_raw_attitude)
                 time.sleep(self.Time_between_messages) # was 0.005 (now 50hz ,500 loops ,5sec)
-			elif self.beh_type == "TAKE OFF" and thrust >= self.hover_thrust:
-			    print("The drone is hovering")
-			    self.beh_type = 'HOVER'
+            elif self.beh_type == "TAKE OFF" and thrust >= self.hover_thrust:
+                print("The drone is hovering")
+                self.beh_type = 'HOVER'
                 target_raw_attitude = AttitudeTarget()
                 target_raw_attitude.header.stamp = rospy.Time.now()
                 target_raw_attitude.orientation = self.imu.orientation
                 target_raw_attitude.body_rate.x = 0 # ROLL_RATE
                 target_raw_attitude.body_rate.y = 0 # PITCH_RATE
                 target_raw_attitude.body_rate.z = 0 # YAW_RATE
-				thrust = self.hover_thrust
+                thrust = self.hover_thrust
                 target_raw_attitude.thrust = thrust
                 self.attitude_target_pub.publish(target_raw_attitude)
                 time.sleep(self.Time_between_messages) #was 0.005   (now 50hz ,500loops)
 
             elif self.beh_type == 'HOVER' and (self.hover_sensor_altitude_max >= self.down_sensor_distance >= self.hover_sensor_altitude_min) and time_flying != 0:
                 print("The drone is hovering")
-				self.beh_type = 'HOVER'
+                self.beh_type = 'HOVER'
                 target_raw_attitude = AttitudeTarget()
                 target_raw_attitude.header.stamp = rospy.Time.now()
                 target_raw_attitude.orientation = self.imu.orientation
                 target_raw_attitude.body_rate.x = 0 # ROLL_RATE
                 target_raw_attitude.body_rate.y = 0 # PITCH_RATE
                 target_raw_attitude.body_rate.z = 0 # YAW_RATE
-				thrust = self.hover_thrust
+                thrust = self.hover_thrust
                 target_raw_attitude.thrust = thrust
                 self.attitude_target_pub.publish(target_raw_attitude)
                 time.sleep(self.Time_between_messages) #was 0.005   (now 50hz ,500loops)
 				
             elif self.beh_type == 'HOVER' and (self.hover_sensor_altitude_max <= self.down_sensor_distance): # We have to go down
                 print("Recovering hover position")
-				self.beh_type = 'HOVER'
+                self.beh_type = 'HOVER'
                 target_raw_attitude = AttitudeTarget()
                 target_raw_attitude.header.stamp = rospy.Time.now()
                 target_raw_attitude.orientation = self.imu.orientation
                 target_raw_attitude.body_rate.x = 0 # ROLL_RATE
                 target_raw_attitude.body_rate.y = 0 # PITCH_RATE
                 target_raw_attitude.body_rate.z = 0 # YAW_RATE
-                target_raw_attitude.thrust = thrust - self.accumulating_thrust
+                target_raw_attitude.thrust = thrust - self.Deaccumulating_thrust
                 self.attitude_target_pub.publish(target_raw_attitude)
                 time.sleep(self.Time_between_messages) # was 0.005 (now 50hz ,500 loops ,5sec)
 				
-			elif self.beh_type == 'HOVER' and (self.down_sensor_distance <= self.hover_sensor_altitude_min): # We have to go up
-			    print("Recovering hover position")
-				self.beh_type = 'HOVER'
+            elif self.beh_type == 'HOVER' and (self.down_sensor_distance <= self.hover_sensor_altitude_min): # We have to go up
+                print("Recovering hover position")
+                self.beh_type = 'HOVER'
                 target_raw_attitude = AttitudeTarget()
                 target_raw_attitude.header.stamp = rospy.Time.now()
                 target_raw_attitude.orientation = self.imu.orientation
                 target_raw_attitude.body_rate.x = 0 # ROLL_RATE
                 target_raw_attitude.body_rate.y = 0 # PITCH_RATE
                 target_raw_attitude.body_rate.z = 0 # YAW_RATE
-                target_raw_attitude.thrust = thrust + self.accumulating_thrust
+                target_raw_attitude.thrust = thrust + self.Deaccumulating_thrust
                 self.attitude_target_pub.publish(target_raw_attitude)
                 time.sleep(self.Time_between_messages) # was 0.005 (now 50hz ,500 loops ,5sec)
 
 				
-			print ("time of hovering has ended")
-            self.beh_type = "LANDING"
-
+        print ("time of hovering has ended")
+        self.beh_type = "LANDING"
+        self.landing_rec()
 
 
 #----------------------change modes----------------------------
@@ -348,5 +365,5 @@ if __name__ == '__main__':
         print("Waiting for Advandiptera brain")
         arm = Arming_Modechng()
         arm.start()
-        arm.lift_off_rec(arm.init_thrust, "Lift_off", arm.hover_time)
+        arm.lift_off_rec(arm.init_thrust, arm.hover_time)
     except rospy.ROSInterruptException: pass
