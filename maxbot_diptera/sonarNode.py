@@ -37,7 +37,7 @@ class sonar():
         self.serialPort4 = "/dev/ttyUSB0"
 
         self.maxRange = 2000  # change for 5m vs 10m sensor
-        self.sleepTime = 0.5
+        self.sleepTime = 0.1
         self.minMM = 0.3
         self.maxMM = 3
         self.mm = float
@@ -82,7 +82,7 @@ class sonar():
                     Serial(self.serialPort0, 9600, 8, 'N', 1).close()
 
                     #Serial(self.serialPort0, 9600).close()
-
+'''
                 if (idx == '/sonarF_link'):
                     self.mm = maxSonarTTY.measure(self.serialPort1)
                     if self.mm >= self.maxRange:
@@ -171,7 +171,7 @@ class sonar():
                     #Serial(self.serialPort3, 9600).close()
 
 
-
+'''
 if __name__ == '__main__':
     try:
         sensor = sonar()
