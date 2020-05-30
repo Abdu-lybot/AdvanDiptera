@@ -46,6 +46,15 @@ class Arming_Modechng():
                     self.landing_sensor_altitude_min = value
                 if key == "Deaccumulating_thrust":
                     self.Deaccumulating_thrust = value
+			    if key == "Time_between_messages":
+                    self.Time_between_messages = value
+			    if key == "Landing_thrust":
+                    self.Landing_thrust = value	
+			    if key == "Secure_time_landing":
+                    self.Secure_time_landing = value	
+			    if key == "Max_time_landing":
+                    self.Max_time_landing = value	                    
+                    
         self.down_sensor_distance = 300 
         self.printing_value = 0 
         self.current_heading = None
@@ -89,7 +98,11 @@ class Arming_Modechng():
         qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
 
         return [qx, qy, qz, qw]
-        
+    
+    def calculate_recursions(self, total_time):
+	    recursions = total_time/self.Time_between_messages
+        return recursions
+    
 #----------------------arming services----------------------------
     def arm(self):
         if self.armService(True):
@@ -196,7 +209,7 @@ class Arming_Modechng():
             time_flying = time_flying - 0.02
             time.sleep(0.02) #was 0.005   (now 50hz ,500loops)
             return self.lift_off_rec(thrust ,beh_type ,time_flying)
-        else:
+        elif self.down_sensor_distance <= self.hover_sensor_altitude_min and time_flying != 0:
             print("Lifting the drone up slowly")
             target_raw_attitude = AttitudeTarget()
             target_raw_attitude.header.stamp = rospy.Time.now()
@@ -205,6 +218,20 @@ class Arming_Modechng():
             target_raw_attitude.body_rate.y = 0 # PITCH_RATE
             target_raw_attitude.body_rate.z = 0 # YAW_RATE
             target_raw_attitude.thrust = thrust + self.accumulating_thrust
+            self.attitude_target_pub.publish(target_raw_attitude)
+            time_flying = time_flying - 0.02
+            time.sleep(0.02) # was 0.005 (now 50hz ,500 loops ,5sec)
+            return self.lift_off_rec(target_raw_attitude.thrust ,beh_type ,time_flying)
+        
+        elif self.hover_sensor_altitude_max <= self.down_sensor_distance and time_flying != 0:
+            print("Lifting the drone up slowly")
+            target_raw_attitude = AttitudeTarget()
+            target_raw_attitude.header.stamp = rospy.Time.now()
+            target_raw_attitude.orientation = self.imu.orientation
+            target_raw_attitude.body_rate.x = 0 # ROLL_RATE
+            target_raw_attitude.body_rate.y = 0 # PITCH_RATE
+            target_raw_attitude.body_rate.z = 0 # YAW_RATE
+            target_raw_attitude.thrust = thrust - self.accumulating_thrust
             self.attitude_target_pub.publish(target_raw_attitude)
             time_flying = time_flying - 0.02
             time.sleep(0.02) # was 0.005 (now 50hz ,500 loops ,5sec)
