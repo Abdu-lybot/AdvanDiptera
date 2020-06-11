@@ -46,9 +46,10 @@ class Lidar_diptera():
         r.max_range = 10000
         r.radiation_type = 1
         r.range = distance
-        scan_pub = rospy.Publisher(topic_name, Range, queue_size=50)
+        scan_pub = rospy.Publisher(topic_name, Range, queue_size=10)
         scan_pub.publish(r)
-        r = rospy.Rate(2)
+        time.sleep(0.05)
+        #r = rospy.Rate(2)
 
         #scan = LaserScan()
         #current_time = rospy.Time.now()
@@ -66,42 +67,64 @@ class Lidar_diptera():
 
 
     def forward_obs_det(self,data):
+        value = 10000
         for angle in range(10,80,20):
            if (20 < data[angle] ):
-                #print("obstacle infront --> move back\n",angle,data[angle])
-                obstacle_direction_frame = "Front Obstacle"
-                obstacle_direction_topic = "/Front_Obstacle"
-                self.lazer_msg_constructor(obstacle_direction_topic,obstacle_direction_frame, np.float_(data[angle]/10),angle )
+               #print("obstacle infront --> move back\n",angle,data[angle])
+               if (int(data[angle])/10 < value ):
+                   value = int(data[angle])/10
+
+        obstacle_direction_frame = "Front Obstacle"
+        obstacle_direction_topic = "/Front_Obstacle"
+        self.lazer_msg_constructor(obstacle_direction_topic,obstacle_direction_frame, np.float_(value) ,angle)
 
     def backward_obs_det(self,data):
-       for angle in range(190,260,20):
-           if (20 < data[angle] ):
+        value = 10000
+        for angle in range(190,260,20):
+            if (20 < data[angle] ):
                 #print("obstacle back --> move front\n",angle,data[angle])
-                obstacle_direction_frame = "Back Obstacle"
-                obstacle_direction_topic = "/Back_Obstacle"
-                self.lazer_msg_constructor(obstacle_direction_topic,obstacle_direction_frame, np.float_(data[angle]/10),angle)
+                if (int(data[angle])/10 < value ):
+                   value = int(data[angle])/10
+
+        obstacle_direction_frame = "Back Obstacle"
+        obstacle_direction_topic = "/Back_Obstacle"
+        self.lazer_msg_constructor(obstacle_direction_topic,obstacle_direction_frame, np.float_(value) ,angle)
 
     def left_obs_det(self,data):
-       for angle in range(100,170,20):
-           if (20 < data[angle] ):
-                #print("obstacle left --> move right\n",angle,data[angle])
-                obstacle_direction_frame = "Left Obstacle"
-                obstacle_direction_topic = "/Left_Obstacle"
-                self.lazer_msg_constructor(obstacle_direction_topic,obstacle_direction_frame, np.float_(data[angle]/10),angle )
+        value = 10000
+        for angle in range(100,170,20):
+            if (20 < data[angle] ):
+                #print("obstacle back --> move front\n",angle,data[angle])
+                if (int(data[angle])/10 < value ):
+                   value = int(data[angle])/10
+
+        obstacle_direction_frame = "Left Obstacle"
+        obstacle_direction_topic = "/Left_Obstacle"
+        self.lazer_msg_constructor(obstacle_direction_topic,obstacle_direction_frame, np.float_(value) ,angle)
 
     def right_obs_det(self,data):
-       for angle in range(190,350,20):
-           if (20 < data[angle] ):
-                #print("obstacle right --> move left\n",angle,data[angle])
-                obstacle_direction_frame = "Right Obstacle"
-                obstacle_direction_topic = "/Right_Obstacle"
-                self.lazer_msg_constructor(obstacle_direction_topic,obstacle_direction_frame, np.float_(data[angle]/10) ,angle)
+        value = 10000
+        for angle in range(190,350,20):
+            if (20 < data[angle] ):
+                #print("obstacle back --> move front\n",angle,data[angle])
+                if (int(data[angle])/10 < value ):
+                   value = int(data[angle])/10
+
+        obstacle_direction_frame = "Right Obstacle"
+        obstacle_direction_topic = "/Right_Obstacle"
+        self.lazer_msg_constructor(obstacle_direction_topic,obstacle_direction_frame, np.float_(value) ,angle)
 
     def point_cloud(self):
         if(self.Obj.Connect()):
             t = time.time()
             while ((time.time() - t) < 1000000):
                 data = self.gen.next()
+#               print data
+                self.forward_obs_det(data)
+                self.backward_obs_det(data)
+                self.left_obs_det(data)
+                self.right_obs_det(data)
+                '''
                 try:
                     thread.start_new_thread(self.forward_obs_det, (data, ))
                     thread.start_new_thread(self.backward_obs_det, (data, ))
@@ -109,6 +132,8 @@ class Lidar_diptera():
                     thread.start_new_thread(self.right_obs_det, (data, ))
                 except:
                     print ("error")
+                '''
+                
 
 ld = Lidar_diptera()
 #ld.spin()
