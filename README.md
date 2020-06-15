@@ -46,7 +46,7 @@ sudo -s
 Edit the following line of your px4.launch file:
 
 ```
-rosrun mavros mavros_node _fcu_url:=/dev/ttyAMA0:921600
+rosrun mavros mavros_node _fcu_url:=/dev/ttyAMA0:57600
 ```
 
 To: 
