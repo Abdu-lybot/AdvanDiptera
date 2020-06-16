@@ -13,60 +13,60 @@ This repository contains code supported on the following installation:
 
 * Install MAVROS using the following commands:
 
-    ```
-	mkdir -p ~/AdvanDiptera/src
-        cd ~/AdvanDiptera
-        catkin init
-        wstool init src
-        rosinstall_generator --rosdistro melodic mavlink | tee /tmp/mavros.rosinstall
-        rosinstall_generator --upstream-development mavros mavros_extras mavros_msgs test_mavros sensor_msgs  control_toolbox realtime_tools tf tf2_ros python_orocos_kdl urdf |tee -a /tmp/mavros.rosinstall
-        wstool merge -t src /tmp/mavros.rosinstall
-        wstool update -t src -j4
-        rosdep install --from-paths src --ignore-src -y
-        sudo ./src/mavros/mavros/scripts/install_geographiclib_datasets.sh
-        catkin build -DCATKIN_ENABLE_TESTING=0 -j2
-    ```
+  ```
+  mkdir -p ~/AdvanDiptera/src
+  cd ~/AdvanDiptera
+  catkin init
+  wstool init src
+  rosinstall_generator --rosdistro melodic mavlink | tee /tmp/mavros.rosinstall
+  rosinstall_generator --upstream-development mavros mavros_extras mavros_msgs test_mavros sensor_msgs  control_toolbox realtime_tools tf tf2_ros python_orocos_kdl urdf |tee -a /tmp/mavros.rosinstall
+  wstool merge -t src /tmp/mavros.rosinstall
+  wstool update -t src -j4
+  rosdep install --from-paths src --ignore-src -y
+  sudo ./src/mavros/mavros/scripts/install_geographiclib_datasets.sh
+  catkin build -DCATKIN_ENABLE_TESTING=0 -j2
+  ```
 * Connect your SD Card to a laptop and change the following files:
 
   * btcmd.txt, you have to have at the end of the file the following lines (add the missing ones):
   
     ```
-        net.ifnames=0 dwc_otg.lpm_enable=0 root=LABEL=writable rootfstype=ext4 elevator=deadline rootwait fixrtc
+    net.ifnames=0 dwc_otg.lpm_enable=0 root=LABEL=writable rootfstype=ext4 elevator=deadline rootwait fixrtc
 	
     ``` 
  
   * config.txt, you have to have at the end of the file the following lines (add the missing ones):
     
     ```
-          enable_uart=1
-          dtoverlay=pi3-disable-bt
-          setenv stdin nulldev
-          include syscfg.txt
-          include usercfg.txt
+    enable_uart=1
+    dtoverlay=pi3-disable-bt
+    setenv stdin nulldev
+    include syscfg.txt
+    include usercfg.txt
     ```  
     
   * nobtcfg.txt, you have to have at the end of the file the following lines (add the missing ones):
     
     ```
-          enable_uart=1
-          cmdline=nobtcmd.txt
+    enable_uart=1
+    cmdline=nobtcmd.txt
     ```  
     
   * nobctmd.txt, you have to have at the end of the file the following lines (add the missing ones):
   
     ```
-          dwc_otg.lpm_enable=0  console=tty3 root=/dev/mmcblk0p2 rootfstype=ext4  elevator=deadline fsck.repair=yes   rootwait
+    dwc_otg.lpm_enable=0  console=tty3 root=/dev/mmcblk0p2 rootfstype=ext4  elevator=deadline fsck.repair=yes   rootwait
     ```	 
 	     
   * syscfg.txt, you have to have at the end of the file the following lines (add the missing ones):
     
     ```
-          dtparam=i2c_arm=on
-          dtparam=spi=on
-          enable_uart=1
-          dtoverlay=pi3-disable-bt
-          setenv stdin nulldev
-          include nobtcfg.txt
+    dtparam=i2c_arm=on
+    dtparam=spi=on
+    enable_uart=1
+    dtoverlay=pi3-disable-bt
+    setenv stdin nulldev
+    include nobtcfg.txt
     ```   
 
 * Download our repository and copy it to the src folder of your catkin repository. 
@@ -74,10 +74,10 @@ This repository contains code supported on the following installation:
 * Open the bashrc file and copy one of the following lines at the end of your file:
 	
     * If you installed MAVROS using Source installation 
-	
-	```
-	  source /home/ubuntu/AdvanDiptera/devel/setup.bash
-	```
+    
+    ```
+    source /home/ubuntu/AdvanDiptera/devel/setup.bash
+    ```
 	
 Edit the following line of your px4.launch file:
 
