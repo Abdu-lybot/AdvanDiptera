@@ -97,6 +97,14 @@ To:
 rosrun mavros mavros_node _fcu_url:=/dev/ttyAMA0:921600
 ```
 
+Install RPi.GPIO:
+'''
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install python-pip python-dev
+sudo pip install RPi.GPIO  
+'''
+
 If during MAVROS launch you have any problem due to permisions run the following command:
 
 ```
