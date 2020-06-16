@@ -71,9 +71,15 @@ This repository contains code supported on the following installation:
 
 * Download our repository and copy it to the src folder of your catkin repository. 
 
-* Open the bashrc file and copy one of the following lines at the end of your file:
+* Open the bashrc file and copy one of the following lines at the end of your file and comment the other one:
 	
-    * If you installed MAVROS using Source installation 
+    * Add the following line at the end 
+    
+    ```
+    source /home/ubuntu/AdvanDiptera/devel/setup.bash
+    ```
+    
+    * Comment the following line  
     
     ```
     source /home/ubuntu/AdvanDiptera/devel/setup.bash
