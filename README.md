@@ -110,3 +110,18 @@ If during MAVROS launch you have any problem due to permisions run the following
 ```
 chmod 777 /dev/ttyAMA0
 ```
+
+Install minicom:
+```
+sudo apt‑get install minicom
+```
+
+With the following command you will be able to check the sonar sensor (change the number of the USB depending on your case):
+```
+minicom -b 9600 -o -D /dev/ttyUSB0
+```
+To check if it is the port where you have your sonar connected, check it with the following command:
+
+```
+dmesg | grep tty
+```
