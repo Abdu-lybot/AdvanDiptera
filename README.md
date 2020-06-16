@@ -7,7 +7,7 @@ In this repository you will find the scripts necessary to fly an autonomous dron
 
 This repository contains code supported on the following installation:
 
-* Install Linux in your Raspberry Pi using the following [webpage](https://ubuntu.com/download/raspberry-pi) 
+* Install Linux in your Raspberry Pi following the steps in this [webpage](https://ubuntu.com/download/raspberry-pi) 
 
 * Install ROS Melodic following the steps included in this [webpage](http://wiki.ros.org/melodic)
 
