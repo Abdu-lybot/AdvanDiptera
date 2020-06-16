@@ -85,7 +85,7 @@ This repository contains code supported on the following installation:
     source /home/ubuntu/AdvanDiptera/devel/setup.bash
     ```
 	
-Edit the following line of your px4.launch file:
+* Edit the following line of your px4.launch file:
 
 ```
 rosrun mavros mavros_node _fcu_url:=/dev/ttyAMA0:57600
@@ -97,7 +97,7 @@ To:
 rosrun mavros mavros_node _fcu_url:=/dev/ttyAMA0:921600
 ```
 
-Install RPi.GPIO:
+* Install RPi.GPIO:
 ```
 sudo apt-get update
 sudo apt-get upgrade
@@ -105,28 +105,28 @@ sudo apt-get install python-pip python-dev
 sudo pip install RPi.GPIO  
 ```
 
-If during MAVROS launch you have any problem due to permisions run the following command:
+* If during MAVROS launch you have any problem due to permisions run the following command:
 
 ```
 chmod 777 /dev/ttyAMA0
 ```
 
-Install minicom:
+* Install minicom:
 ```
 sudo apt‑get install minicom
 ```
 
-With the following command you will be able to check the sonar sensor (change the number of the USB depending on your case):
+* With the following command you will be able to check the sonar sensor (change the number of the USB depending on your case):
 ```
 minicom -b 9600 -o -D /dev/ttyUSB0
 ```
-To check if it is the port where you have your sonar connected, check it with the following command:
+* To check if it is the port where you have your sonar connected, check it with the following command:
 
 ```
 dmesg | grep tty
 ```
 
-Install PyLidar2 for our Lidar. You will have to check the USB ports as it has been done with the sonar.
+* Install PyLidar2 for our Lidar. You will have to check the USB ports as it has been done with the sonar.
 
 ```
 sudo pip install PyLidar2
