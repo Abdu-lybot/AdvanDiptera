@@ -125,3 +125,9 @@ To check if it is the port where you have your sonar connected, check it with th
 ```
 dmesg | grep tty
 ```
+
+Install PyLidar2 for our Lidar. You will have to check the USB ports as it has been done with the sonar.
+
+```
+sudo pip install PyLidar2
+```
