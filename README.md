@@ -131,3 +131,8 @@ dmesg | grep tty
 ```
 sudo pip install PyLidar2
 ```
+* Install teleop_twist_keyboard to control the drone with your keyboard.
+
+```
+sudo apt-get install ros-melodic-teleop-twist-keyboard
+```
