@@ -4,6 +4,7 @@ import rospy
 from mavros_msgs.srv import CommandBool, CommandTOL, SetMode
 from mavros_msgs.msg import GlobalPositionTarget, State, PositionTarget, AttitudeTarget
 from sensor_msgs.msg import Imu, NavSatFix
+from std_msgs.msg import String
 from quaternion import Quaternion
 import time, math
 import yaml
@@ -48,9 +49,9 @@ class Arming_Modechng():
 		if key == "Landing_thrust":
                     self.Landing_thrust = value
                 if key == "Moving_max_thrust":
-                    self.Moving_thrust_max_thrust = value
+                    self.Moving_max_thrust = value
 		if key == "Moving_min_thrust":
-                    self.Moving_thrust_min_thrust = value
+                    self.Moving_min_thrust = value
                 if key == "accumulating_thrust_soft":
                     self.accumulating_thrust_soft = value
                 if key == "accumulating_thrust":
@@ -75,6 +76,8 @@ class Arming_Modechng():
                     self.Max_time_landing = value						
 		if key == "Avoiding_obstacle_time":
                     self.Avoiding_obstacle_time = value	
+		if key == "Keyboard_control_time":
+                    self.Keyboard_control_time = value
 	
                 # Angles
                 if key == "angle_roll_left":
@@ -138,6 +141,9 @@ class Arming_Modechng():
         self.down_sensor_distance = None 
 
 	self.beh_type = None
+       
+        # variable to know if the drone is being controlled by the keyboard
+        self.keyboardcontrolstate = None
 
         self.printing_value = 0 
         self.current_heading = None
@@ -159,7 +165,7 @@ class Arming_Modechng():
         self.back_obstacle_detection_sub = rospy.Subscriber("/Back_Obstacle", Range, self.back_obstacle_detection_callback)
         self.left_obstacle_detection_sub = rospy.Subscriber("/Left_Obstacle", Range, self.left_obstacle_detection_callback)
         self.right_obstacle_detection_sub = rospy.Subscriber("/Right_Obstacle", Range, self.right_obstacle_detection_callback)
-
+        self.keyboardcontrol_target_sub = rospy.Subscriber("/custom/keyboardcontrol", String, self.keyboardcontrol_callback)
 
     def q2yaw(self, q):
         if isinstance(q, Quaternion): # Checks if the variable is of the type Quaternion
@@ -182,6 +188,9 @@ class Arming_Modechng():
         self.current_heading = self.q2yaw(self.imu.orientation) # Transforms q into degrees of yaw
         self.received_imu = True
         
+    def keyboardcontrol_callback(self, msg):
+        self.keyboardcontrolstate = msg.data    
+ 
     def euler2quaternion(self, roll = 0, pitch = 0, yaw = 0):
         qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
         qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
@@ -431,6 +440,12 @@ class Arming_Modechng():
 
             if self.skip_to_land == True:
                 break
+            
+            elif self.keyboardcontrolstate == "Controlled":
+                time.sleep(self.Keyboard_control_time)
+
+            elif self.stateForwardAvoiding == True or self.stateBackAvoiding == True or self.stateForwardAvoiding == True or self.stateBackAvoiding == True:
+                time.sleep(self.Avoiding_obstacle_time)
 
             elif self.beh_type == 'HOVER' and (self.hover_sensor_altitude_max >= self.down_sensor_distance >= self.hover_sensor_altitude_min):
                 print("The drone is hovering")
@@ -456,7 +471,7 @@ class Arming_Modechng():
 #                      /// RIGHT MOVE RAW ///
 
     def moving_right_raw_rec(self, time_flying): 
-        recursions = self.calculate_recursions(4)
+        recursions = self.calculate_recursions(time_flying)
         difference_distance = self.hover_sensor_altitude_max - self.hover_sensor_altitude_min
         difference_thrust = self.Moving_max_thrust - self.Moving_min_thrust
         proportional_thrust = difference_thrust / difference_distance
@@ -464,11 +479,17 @@ class Arming_Modechng():
         self.beh_type = 'MOVING'
 
 	for i in range(recursions):
-            print 'Recursion: ' + str(i) + '   Total Recursions hovering: ' + str(recursions)
+            print 'Recursion: ' + str(i) + '   Total Recursions moving right: ' + str(recursions)
             print 'Sonar down distance: ' + str(self.down_sensor_distance)        
 
-            if self.skip_to_land == True:
+            if self.skip_to_land == True or self.blockingMovementRight == True:
                 break
+
+            elif self.keyboardcontrolstate == "Controlled":
+                time.sleep(self.Keyboard_control_time)
+
+            elif self.stateForwardAvoiding == True or self.stateBackAvoiding == True:
+                time.sleep(self.Avoiding_obstacle_time)
 
             elif self.beh_type == 'MOVING' and (self.hover_sensor_altitude_max >= self.down_sensor_distance >= self.hover_sensor_altitude_min):
                 print("The drone is moving right")
@@ -477,19 +498,19 @@ class Arming_Modechng():
                 self.construct_target_attitude(0,0,0,thrust, self.angle_roll_right, 0, 0)
 				
             elif self.beh_type == 'MOVING' and (self.hover_sensor_altitude_max <= self.down_sensor_distance): # We have to go down
-                print("Recovering altitude position - going down + moving")
+                print("Recovering altitude position - going down + moving right")
                 thrust = self.Moving_min_thrust
                 self.construct_target_attitude(0,0,0,thrust, self.angle_roll_right, 0, 0)
 				
             elif self.beh_type == 'MOVING' and (self.down_sensor_distance <= self.hover_sensor_altitude_min): # We have to go up
-                print("Recovering altitude position - going up + moving")
+                print("Recovering altitude position - going up + moving right")
                 thrust = self.Moving_max_thrust
                 self.construct_target_attitude(0,0,0,thrust, self.angle_roll_right, 0, 0)
 
 #                      /// LEFT MOVE RAW ///
 
     def moving_left_raw_rec(self, time_flying): 
-        recursions = self.calculate_recursions(4)
+        recursions = self.calculate_recursions(time_flying)
         difference_distance = self.hover_sensor_altitude_max - self.hover_sensor_altitude_min
         difference_thrust = self.Moving_max_thrust - self.Moving_min_thrust
         proportional_thrust = difference_thrust / difference_distance
@@ -497,32 +518,38 @@ class Arming_Modechng():
         self.beh_type = 'MOVING'
 
 	for i in range(recursions):
-            print 'Recursion: ' + str(i) + '   Total Recursions hovering: ' + str(recursions)
+            print 'Recursion: ' + str(i) + '   Total Recursions moving left: ' + str(recursions)
             print 'Sonar down distance: ' + str(self.down_sensor_distance)        
 
-            if self.skip_to_land == True:
+            if self.skip_to_land == True or self.blockingMovementLeft == True:
                 break
 
+            elif self.keyboardcontrolstate == "Controlled":
+                time.sleep(self.Keyboard_control_time)
+
+            elif self.stateForwardAvoiding == True or self.stateBackAvoiding == True:
+                time.sleep(self.Avoiding_obstacle_time)
+
             elif self.beh_type == 'MOVING' and (self.hover_sensor_altitude_max >= self.down_sensor_distance >= self.hover_sensor_altitude_min):
-                print("The drone is hovering")
+                print("The drone is moving left")
                 distance_more = self.down_sensor_distance - self.hover_sensor_altitude_min 
                 thrust = self.Moving_max_thrust - distance_more * proportional_thrust
                 self.construct_target_attitude(0,0,0,thrust, self.angle_roll_left, 0, 0)
 				
             elif self.beh_type == 'MOVING' and (self.hover_sensor_altitude_max <= self.down_sensor_distance): # We have to go down
-                print("Recovering altitude position - going down + moving")
+                print("Recovering altitude position - going down + moving left")
                 thrust = self.Moving_min_thrust
                 self.construct_target_attitude(0,0,0,thrust, self.angle_roll_left, 0, 0)
 				
             elif self.beh_type == 'MOVING' and (self.down_sensor_distance <= self.hover_sensor_altitude_min): # We have to go up
-                print("Recovering altitude position - going up + moving")
+                print("Recovering altitude position - going up + moving left")
                 thrust = self.Moving_max_thrust
                 self.construct_target_attitude(0,0,0,thrust, self.angle_roll_left, 0, 0)
 
 #                      /// BACK MOVE RAW ///
                 
     def moving_back_raw_rec(self, time_flying): 
-        recursions = self.calculate_recursions(4)
+        recursions = self.calculate_recursions(time_flying)
         difference_distance = self.hover_sensor_altitude_max - self.hover_sensor_altitude_min
         difference_thrust = self.Moving_max_thrust - self.Moving_min_thrust
         proportional_thrust = difference_thrust / difference_distance
@@ -530,32 +557,38 @@ class Arming_Modechng():
         self.beh_type = 'MOVING'
 
 	for i in range(recursions):
-            print 'Recursion: ' + str(i) + '   Total Recursions hovering: ' + str(recursions)
+            print 'Recursion: ' + str(i) + '   Total Recursions moving back: ' + str(recursions)
             print 'Sonar down distance: ' + str(self.down_sensor_distance)        
 
-            if self.skip_to_land == True:
+            if self.skip_to_land == True or self.blockingMovementBack == True:
                 break
 
+            elif self.keyboardcontrolstate == "Controlled":
+                time.sleep(self.Keyboard_control_time)
+
+            elif self.stateLeftAvoiding == True or self.stateRightAvoiding == True:
+                time.sleep(self.Avoiding_obstacle_time)
+
             elif self.beh_type == 'MOVING' and (self.hover_sensor_altitude_max >= self.down_sensor_distance >= self.hover_sensor_altitude_min):
-                print("The drone is hovering")
+                print("The drone is moving back")
                 distance_more = self.down_sensor_distance - self.hover_sensor_altitude_min 
                 thrust = self.Moving_max_thrust - distance_more * proportional_thrust
                 self.construct_target_attitude(0,0,0,thrust, 0, self.angle_pitch_back, 0)
 				
             elif self.beh_type == 'MOVING' and (self.hover_sensor_altitude_max <= self.down_sensor_distance): # We have to go down
-                print("Recovering altitude position - going down + moving")
+                print("Recovering altitude position - going down + moving back")
                 thrust = self.Moving_min_thrust
                 self.construct_target_attitude(0,0,0,thrust, 0, self.angle_pitch_back, 0)
 				
             elif self.beh_type == 'MOVING' and (self.down_sensor_distance <= self.hover_sensor_altitude_min): # We have to go up
-                print("Recovering altitude position - going up + moving")
+                print("Recovering altitude position - going up + moving back")
                 thrust = self.Moving_max_thrust
                 self.construct_target_attitude(0,0,0,thrust, 0, self.angle_pitch_back, 0)
 
 #                      /// FORWARD MOVE RAW ///
 
     def moving_forward_raw_rec(self, time_flying): 
-        recursions = self.calculate_recursions(4)
+        recursions = self.calculate_recursions(time_flying)
         difference_distance = self.hover_sensor_altitude_max - self.hover_sensor_altitude_min
         difference_thrust = self.Moving_max_thrust - self.Moving_min_thrust
         proportional_thrust = difference_thrust / difference_distance
@@ -563,25 +596,31 @@ class Arming_Modechng():
         self.beh_type = 'MOVING'
 
 	for i in range(recursions):
-            print 'Recursion: ' + str(i) + '   Total Recursions hovering: ' + str(recursions)
+            print 'Recursion: ' + str(i) + '   Total Recursions moving forward: ' + str(recursions)
             print 'Sonar down distance: ' + str(self.down_sensor_distance)        
 
-            if self.skip_to_land == True:
+            if self.skip_to_land == True or self.blockingMovementFront == True:
                 break
 
+            elif self.keyboardcontrolstate == "Controlled":
+                time.sleep(self.Keyboard_control_time)
+
+            elif self.stateLeftAvoiding == True or self.stateRightAvoiding == True:
+                time.sleep(self.Avoiding_obstacle_time)
+
             elif self.beh_type == 'MOVING' and (self.hover_sensor_altitude_max >= self.down_sensor_distance >= self.hover_sensor_altitude_min):
-                print("The drone is hovering")
+                print("The drone is moving forward")
                 distance_more = self.down_sensor_distance - self.hover_sensor_altitude_min 
                 thrust = self.Moving_max_thrust - distance_more * proportional_thrust
                 self.construct_target_attitude(0,0,0,thrust, 0, self.angle_pitch_forward, 0)
 				
             elif self.beh_type == 'MOVING' and (self.hover_sensor_altitude_max <= self.down_sensor_distance): # We have to go down
-                print("Recovering altitude position - going down + moving")
+                print("Recovering altitude position - going down + moving forward")
                 thrust = self.Moving_min_thrust
                 self.construct_target_attitude(0,0,0,thrust, 0, self.angle_pitch_forward, 0)
 				
             elif self.beh_type == 'MOVING' and (self.down_sensor_distance <= self.hover_sensor_altitude_min): # We have to go up
-                print("Recovering altitude position - going up + moving")
+                print("Recovering altitude position - going up + moving forward")
                 thrust = self.Moving_max_thrust
                 self.construct_target_attitude(0,0,0,thrust, 0, self.angle_pitch_forward, 0)
 
@@ -592,9 +631,9 @@ class Arming_Modechng():
 
     def moving_right_rec(self, time_flying): 
 
-        move_desired_direction_time = time_flying * percentage_moving_desired_direction
-        move_opposite_direction_time = time_flying * percentage_moving_opposite_direction
-        hover_time = time_flying * percentage_hovering
+        move_desired_direction_time = time_flying * self.percentage_moving_desired_direction
+        move_opposite_direction_time = time_flying * self.percentage_moving_opposite_direction
+        hover_time = time_flying * self.percentage_hovering
 
         self.moving_right_raw_rec(move_desired_direction_time)
         self.moving_left_raw_rec(move_opposite_direction_time)       
@@ -604,9 +643,9 @@ class Arming_Modechng():
 
     def moving_left_rec(self, time_flying):
  
-        move_desired_direction_time = time_flying * percentage_moving_desired_direction
-        move_opposite_direction_time = time_flying * percentage_moving_opposite_direction
-        hover_time = time_flying * percentage_hovering
+        move_desired_direction_time = time_flying * self.percentage_moving_desired_direction
+        move_opposite_direction_time = time_flying * self.percentage_moving_opposite_direction
+        hover_time = time_flying * self.percentage_hovering
 
         self.moving_left_raw_rec(move_desired_direction_time)
         self.moving_right_raw_rec(move_opposite_direction_time)       
@@ -616,9 +655,9 @@ class Arming_Modechng():
 
     def moving_forward_rec(self, time_flying):
  
-        move_desired_direction_time = time_flying * percentage_moving_desired_direction
-        move_opposite_direction_time = time_flying * percentage_moving_opposite_direction
-        hover_time = time_flying * percentage_hovering
+        move_desired_direction_time = time_flying * self.percentage_moving_desired_direction
+        move_opposite_direction_time = time_flying * self.percentage_moving_opposite_direction
+        hover_time = time_flying * self.percentage_hovering
 
         self.moving_forward_raw_rec(move_desired_direction_time)
         self.moving_back_raw_rec(move_opposite_direction_time)       
@@ -628,9 +667,9 @@ class Arming_Modechng():
 
     def moving_back_rec(self, time_flying):
  
-        move_desired_direction_time = time_flying * percentage_moving_desired_direction
-        move_opposite_direction_time = time_flying * percentage_moving_opposite_direction
-        hover_time = time_flying * percentage_hovering
+        move_desired_direction_time = time_flying * self.percentage_moving_desired_direction
+        move_opposite_direction_time = time_flying * self.percentage_moving_opposite_direction
+        hover_time = time_flying * self.percentage_hovering
 
         self.moving_back_raw_rec(move_desired_direction_time)
         self.moving_forward_raw_rec(move_opposite_direction_time)       
@@ -749,8 +788,11 @@ class Arming_Modechng():
                 print("Landing")
                 thrust = thrust - self.accumulating_thrust_soft
                 self.construct_target_attitude(0,0,0,thrust)
-	
-        self.disarm()
+        for i in range(20):
+            
+            self.arm_state = self.disarm()    # arms the drone
+            time.sleep(0.1)	
+
 
 
 
@@ -806,9 +848,9 @@ if __name__ == '__main__':
        
         # Moving
         arm.moving_right_rec(arm.Moving_time)
-        arm.moving_left_rec(arm.Moving_time)
-        arm.moving_forward_rec(arm.Moving_time)
-        arm.moving_back_rec(arm.Moving_time)
+        #arm.moving_left_rec(arm.Moving_time)
+        #arm.moving_forward_rec(arm.Moving_time)
+        #arm.moving_back_rec(arm.Moving_time)
 
         # Hover + landing
         arm.hover_rec(arm.hover_time)
