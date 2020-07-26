@@ -13,13 +13,13 @@ Avoiding_obstacle_distance_hard_min: 1000
 Blocking_movement_distance_min: 300 # in mm
 Unblocking_movement_distance_min: 400 # in mm
 
-# We should try from 0.4 at liftoff and giving more time
-Liftoff_thrust: 0.45 # 0.6 seems good, it is the last value we had in hover during the testing
+# We should try from 0.45 at liftoff and giving more time
+Liftoff_thrust: 0.45 # 0.55 seems good, it is the last value we had in hover during the testing
 Hover_thrust: 0.45 # Last tested, probably 0.54 it is the hovering thrust 
-Landing_thrust: 0.45 # 0.52 seems good, probably more it will be better
+Landing_thrust: 0.45 # 0.55 seems good, probably more it will be better
 Moving_max_thrust: 0.45 # not tested, probably it works
 Moving_min_thrust: 0.45
-Liftoff_thrust_maximum: 0.56
+Liftoff_thrust_maximum: 0.57
 
 accumulating_thrust_soft: 0.001
 accumulating_thrust: 0.015 #(was 0.0005) 0.5 hover throttle / 0.0005 acc = 1000 loops (now 500loops),1000*0.005 time each loop (200hz)= 0.5sec
@@ -48,7 +48,8 @@ angle_roll_right_hard: -12 # in degrees
 angle_pitch_back_hard: -12 # in degrees
 angle_pitch_forward_hard: 12 # in degrees 
 
+angle_pitch_flow_max: 3
+angle_roll_flow_max: 3
 
-
-
+flow_rate_threshold: 200
 
