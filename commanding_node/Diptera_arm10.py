@@ -13,6 +13,7 @@ from gpio_clean import Rpi_gpio_comm_off as Gpio_stop
 from sensor_msgs.msg import Range
 from geometry_msgs.msg import PoseStamped, Twist
 
+from px_comm.msg import OpticalFlow
 
 class Arming_Modechng():
 
@@ -113,6 +114,20 @@ class Arming_Modechng():
 		if key == "angle_pitch_forward_hard":
                     self.angle_pitch_forward_hard = value
 
+		if key == "angle_pitch_flow_max":
+                    self.angle_pitch_flow_max = value
+		if key == "angle_roll_flow_max":
+                    self.angle_roll_flow_max = value
+
+		if key == "flow_rate_threshold":
+                    self.flow_rate_threshold = value
+
+        # FLOW
+        self.local_flow_x = 0
+        self.local_flow_y = 0
+        self.angle_pitch_flow = 0 # positive front/ negative back 
+        self.angle_roll_flow = 0 # positive left/ negative right
+
         self.skip_to_land = False   # In case of an error it will skip al the movements and will go automatically to landing 
 	self.Liftoff_thrust_old = None
         self.Landing_thrust_old = None	
@@ -185,6 +200,8 @@ class Arming_Modechng():
         self.down_sensor = rospy.Subscriber(subscribed_topic_d, Range, self.cb_down_sensor)
         self.local_pose_sub = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.cb_local_pose)
 
+        self.local_flow_sub = rospy.Subscriber("/px4flow/opt_flow", OpticalFlow, self.local_flow)
+
         # Custom subscribers
         self.lidar_obstacle_detection_sub = rospy.Subscriber("/custom/lidaravoidance", String, self.lidar_obstacle_detection_callback)
         self.keyboardcontrol_target_sub = rospy.Subscriber("/custom/keyboardcontrol", String, self.keyboardcontrol_callback)
@@ -226,6 +243,11 @@ class Arming_Modechng():
         if self.keyboardcontrolstate == "Emergency land":
             self.skip_to_land = True
             self.change_thrusts(0.49, 0.49, 0.49)
+
+    def local_flow(self,msg):
+        self.local_flow = msg
+        self.local_flow_x = msg.flow_x
+        self.local_flow_y = msg.flow_y
  
     def euler2quaternion(self, roll = 0, pitch = 0, yaw = 0):
         qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
@@ -410,6 +432,8 @@ class Arming_Modechng():
         thrust = float(self.hover_thrust)
         self.beh_type = 'HOVER'
 
+        reset = 0
+
         print(recursions)
 	for i in range(recursions):
             print 'Recursion: ' + str(i) + '   Total Recursions hovering: ' + str(recursions)
@@ -502,14 +526,32 @@ class Arming_Modechng():
                     thrust = self.Liftoff_thrust
                     if self.down_sensor_changed == True:
                         self.down_sensor_changed = False
-                        thrust = thrust + 0.005
+                        thrust = thrust + 0.001
                         self.change_thrusts(thrust, thrust - 0.015, thrust - 0.035)
                     thrust = self.Liftoff_thrust
                     print('Thrust: %f    The drone is hovering - going down' % (thrust))
                 else:
                     print('Thrust: %f    The drone is hovering - maximum thrust obtained' % (thrust))
 
-                self.construct_target_attitude(0,0,0,thrust)
+                reset = reset + 1
+                if reset >= 100:
+                    if self.local_flow_x > self.flow_rate_threshold: # drone moving right, correcting moving left
+                        if self.angle_roll_flow > self.angle_roll_flow_max:
+                            self.angle_roll_flow = self.angle_roll_flow + 0.5
+                    elif self.local_flow_x < - self.flow_rate_threshold: # drone moving left, correcting moving right
+                        if self.angle_roll_flow < - self.angle_roll_flow_max:
+                            self.angle_roll_flow = self.angle_roll_flow - 0.5
+
+                    if self.local_flow_y > self.flow_rate_threshold: # drone moving front, correcting moving back
+                        if self.angle_pitch_flow < - self.angle_pitch_flow_max:
+                            self.angle_pitch_flow = self.angle_pitch_flow - 0.5
+                    elif self.local_flow_y < - self.flow_rate_threshold: # drone moving back, correcting moving front
+                        if self.angle_pitch_flow > self.angle_pitch_flow_max:
+                            self.angle_pitch_flow = self.angle_pitch_flow + 0.5
+                    reset = 0
+
+
+                self.construct_target_attitude(0,0,0,thrust, self.angle_roll_flow, self.angle_pitch_flow, 0)
 	
         print ("time of hovering has ended")
 
@@ -623,7 +665,7 @@ class Arming_Modechng():
                     thrust = self.Liftoff_thrust
                     if self.down_sensor_changed == True:
                         self.down_sensor_changed = False
-                        thrust = thrust + 0.005
+                        thrust = thrust + 0.001
                         self.change_thrusts(thrust, thrust - 0.02, thrust - 0.04)
                     thrust = self.Liftoff_thrust
                     print('Thrust: %f    The drone is moving - going down' % (thrust))
@@ -1066,11 +1108,12 @@ if __name__ == '__main__':
 
         # Arming + liftoff + hover
         arm.start()
-        if arm.down_sensor_distance != None
+        if arm.down_sensor_distance != None:
             #arm.lift_off_rec(arm.init_thrust, arm.Liftoff_time)
-            #arm.automatic_lift_off_rec(arm.init_thrust, arm.Liftoff_time)
+            arm.automatic_lift_off_rec(arm.init_thrust, arm.Liftoff_time)
+            #arm.automatic_lift_off_rec_v2(arm.init_thrust, arm.Liftoff_time)
 
-            #arm.hover_rec(arm.hover_time)
+            arm.hover_rec(arm.hover_time)
             #arm.automatic_hover_rec(arm.hover_time)
        
             # Moving
@@ -1088,7 +1131,7 @@ if __name__ == '__main__':
 
             # Hover + landing
             #arm.hover_rec(5)
-            #arm.landing_rec()
+            arm.landing_rec()
         else:
             print("No sonar detected, disarming")
 
