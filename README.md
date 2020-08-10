@@ -136,3 +136,12 @@ sudo pip install PyLidar2
 ```
 sudo apt-get install ros-melodic-teleop-twist-keyboard
 ```
+
+* Install px4flow node to control the changes in the flow.
+
+```
+cd Advandiptera/src
+git clone https://github.com/cvg/px-ros-pkg.git
+cd ..
+catkin build -j2
+```
