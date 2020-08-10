@@ -24,14 +24,14 @@ class Lidar_diptera():
             self.x_pointcloud.append(0)
             self.y_pointcloud.append(0)
 
-        self.right_distance = 50000
-        self.left_distance = 50000
-        self.front_distance = 50000
-        self.back_distance = 50000
-        self.front_right_distance = 50000
-        self.front_left_distance = 50000
-        self.back_right_distance = 50000
-        self.back_left_distance = 50000
+        self.right_distance = 5000
+        self.left_distance = 5000
+        self.front_distance = 5000
+        self.back_distance = 5000
+        self.front_right_distance = 5000
+        self.front_left_distance = 5000
+        self.back_right_distance = 5000
+        self.back_left_distance = 5000
 
         self.yamlpath = '/home/ubuntu/AdvanDiptera/src/commanding_node/params/arm_params.yaml'
         with open(self.yamlpath) as file:
@@ -93,24 +93,30 @@ class Lidar_diptera():
         value2 = 0
         count2 = 0
 
-        for angle in range(255,265,1): 
+        for angle in range(258,278,1): 
            if (300 < data[angle] ):
-               value1 = value1 + data[angle]
+               if data[angle] > 5000:
+                   value1 = value1 + 5000
+               else:
+                   value1 = value1 + data[angle]
                count1 = count1 + 1
 
-        for angle in range(275,285,1): 
+        for angle in range(272,282,1): 
            if (300 < data[angle] ):
-               value2 = value2 + data[angle]
+               if data[angle] > 5000:
+                   value2 = value2 + 5000
+               else:
+                   value2 = value2 + data[angle]
                count2 = count2 + 1
 
         if value1 != 0:
             value1 = value1 / count1
         else: 
-            value1 = 50000
+            value1 = 5000
         if value2 != 0:
             value2 = value2 / count2
         else: 
-            value2 = 50000
+            value2 = 5000
 
         if value1 < value2:
             value = value1
@@ -128,24 +134,30 @@ class Lidar_diptera():
         value2 = 0
         count2 = 0
 
-        for angle in range(75,85,1): 
+        for angle in range(78,88,1): 
             if (300 < data[angle] ):
-               value1 = value1 + data[angle]
+               if data[angle] > 5000:
+                   value1 = value1 + 5000
+               else:
+                   value1 = value1 + data[angle]
                count1 = count1 + 1
 
-        for angle in range(95,105,1):
+        for angle in range(92,102,1):
             if (300 < data[angle] ):
-               value2 = value2 + data[angle]
+               if data[angle] > 5000:
+                   value2 = value2 + 5000
+               else:
+                   value2 = value2 + data[angle]
                count2 = count2 + 1
 
         if value1 != 0:
             value1 = value1 / count1
         else: 
-            value1 = 50000
+            value1 = 5000
         if value2 != 0:
             value2 = value2 / count2
         else: 
-            value2 = 50000
+            value2 = 5000
 
         if value1 < value2:
             value = value1
@@ -162,24 +174,30 @@ class Lidar_diptera():
         count1 = 0
         value2 = 0
         count2 = 0
-        for angle in range(165,175,2):
+        for angle in range(168,178,2):
             if (300 < data[angle] ):
-               value1 = value1 + data[angle]
+               if data[angle] > 5000:
+                   value1 = value1 + 5000
+               else:
+                   value1 = value1 + data[angle]
                count1 = count1 + 1
 
-        for angle in range(185,195,2): 
+        for angle in range(182,192,2): 
             if (300 < data[angle] ):
-               value2 = value2 + data[angle]
+               if data[angle] > 5000:
+                   value2 = value2 + 5000
+               else:
+                   value2 = value2 + data[angle]
                count2 = count2 + 1
 
         if value1 != 0:
             value1 = value1 / count1
         else: 
-            value1 = 50000
+            value1 = 5000
         if value2 != 0:
             value2 = value2 / count2
         else: 
-            value2 = 50000
+            value2 = 5000
 
         if value1 < value2:
             value = value1
@@ -195,24 +213,30 @@ class Lidar_diptera():
         count1 = 0
         value2 = 0
         count2 = 0
-        for angle in range(345,355,1): # 315 degrees to 45 degrees, divided in two steps
+        for angle in range(348,358,1): # 315 degrees to 45 degrees, divided in two steps
             if (300 < data[angle] ):
-               value1 = value1 + data[angle]
+               if data[angle] > 5000:
+                   value1 = value1 + 5000
+               else:
+                   value1 = value1 + data[angle]
                count1 = count1 + 1
 
-        for angle in range(5,15,1):
+        for angle in range(2,12,1):
             if (300 < data[angle] ):
-               value2 = value2 + data[angle]
+               if data[angle] > 5000:
+                   value2 = value2 + 5000
+               else:
+                   value2 = value2 + data[angle]
                count2 = count2 + 1
 
         if value1 != 0:
             value1 = value1 / count1
         else: 
-            value1 = 50000
+            value1 = 5000
         if value2 != 0:
             value2 = value2 / count2
         else: 
-            value2 = 50000
+            value2 = 5000
 
         if value1 < value2:
             value = value1
@@ -231,24 +255,30 @@ class Lidar_diptera():
         count1 = 0
         value2 = 0
         count2 = 0
-        for angle in range(300,310,1): 
+        for angle in range(303,313,1): 
            if (300 < data[angle] ):
-               value1 = value1 + data[angle]
+               if data[angle] > 5000:
+                   value1 = value1 + 5000
+               else:
+                   value1 = value1 + data[angle]
                count1 = count1 + 1
 
-        for angle in range(320,330,1):
+        for angle in range(317,327,1):
             if (300 < data[angle] ):
-               value2 = value2 + data[angle]
+               if data[angle] > 5000:
+                   value2 = value2 + 5000
+               else:
+                   value2 = value2 + data[angle]
                count2 = count2 + 1
 
         if value1 != 0:
             value1 = value1 / count1
         else: 
-            value1 = 50000
+            value1 = 5000
         if value2 != 0:
             value2 = value2 / count2
         else: 
-            value2 = 50000
+            value2 = 5000
 
         if value1 < value2:
             value = value1
@@ -265,24 +295,30 @@ class Lidar_diptera():
         count1 = 0
         value2 = 0
         count2 = 0
-        for angle in range(210,220,1):
+        for angle in range(213,223,1):
             if (300 < data[angle] ):
-               value1 = value1 + data[angle]
+               if data[angle] > 5000:
+                   value1 = value1 + 5000
+               else:
+                   value1 = value1 + data[angle]
                count1 = count1 + 1
 
-        for angle in range(230,240,1):
+        for angle in range(227,237,1):
             if (300 < data[angle] ):
-               value2 = value2 + data[angle]
+               if data[angle] > 5000:
+                   value2 = value2 + 5000
+               else:
+                   value2 = value2 + data[angle]
                count2 = count2 + 1
 
         if value1 != 0:
             value1 = value1 / count1
         else: 
-            value1 = 50000
+            value1 = 5000
         if value2 != 0:
             value2 = value2 / count2
         else: 
-            value2 = 50000
+            value2 = 5000
 
         if value1 < value2:
             value = value1
@@ -300,24 +336,30 @@ class Lidar_diptera():
         value2 = 0
         count2 = 0
 
-        for angle in range(30,40,2): 
+        for angle in range(33,43,2): 
             if (300 < data[angle] ):
-               value1 = value1 + data[angle]
+               if data[angle] > 5000:
+                   value1 = value1 + 5000
+               else:
+                   value1 = value1 + data[angle]
                count1 = count1 + 1
 
-        for angle in range(50,60,1):
+        for angle in range(47,57,1):
             if (300 < data[angle] ):
-               value2 = value2 + data[angle]
+               if data[angle] > 5000:
+                   value2 = value2 + 5000
+               else:
+                   value2 = value2 + data[angle]
                count2 = count2 + 1
 
         if value1 != 0:
             value1 = value1 / count1
         else: 
-            value1 = 50000
+            value1 = 5000
         if value2 != 0:
             value2 = value2 / count2
         else: 
-            value2 = 50000
+            value2 = 5000
 
         if value1 < value2:
             value = value1
@@ -335,24 +377,30 @@ class Lidar_diptera():
         value2 = 0
         count2 = 0
 
-        for angle in range(120,130,1): 
+        for angle in range(123,133,1): 
             if (300 < data[angle] ):
-               value1 = value1 + data[angle]
+               if data[angle] > 5000:
+                   value1 = value1 + 5000
+               else:
+                   value1 = value1 + data[angle]
                count1 = count1 + 1
 
-        for angle in range(140,150,1):
+        for angle in range(137,147,1):
             if (300 < data[angle] ):
-               value2 = value2 + data[angle]
+               if data[angle] > 5000:
+                   value2 = value2 + 5000
+               else:
+                   value2 = value2 + data[angle]
                count2 = count2 + 1
 
         if value1 != 0:
             value1 = value1 / count1
         else: 
-            value1 = 50000
+            value1 = 5000
         if value2 != 0:
             value2 = value2 / count2
         else: 
-            value2 = 50000
+            value2 = 5000
 
         if value1 < value2:
             value = value1
@@ -370,7 +418,8 @@ class Lidar_diptera():
     def point_cloud(self):
         if(self.Obj.Connect()):
             t = time.time()
-            while ((time.time() - t) < 1000000):
+            #while ((time.time() - t) < 1000000):
+            while not rospy.is_shutdown():
                 data = self.gen.next()
                 #print data
                 self.forward_obs_det(data)
@@ -385,64 +434,65 @@ class Lidar_diptera():
                 # DIAGONALS
                 if self.front_right_distance <= self.Avoiding_obstacle_distance_min:  # Obstacle Front/Right
 
-                    if self.front_right_distance <= self.Avoiding_obstacle_distance_hard_min:
-                        self.lidar_avoidance_pub.publish(String("Front Right Hard"))
-                    else: 
-                        self.lidar_avoidance_pub.publish(String("Front Right"))                        
+                    #if self.front_right_distance <= self.Avoiding_obstacle_distance_hard_min:
+                    #    self.lidar_avoidance_pub.publish(String("Front Right Hard"))
+                    #else: 
+                    self.lidar_avoidance_pub.publish(String("Front Right"))                        
 
                 elif self.front_left_distance <= self.Avoiding_obstacle_distance_min:  # Obstacle Front/Left
-                    if self.front_left_distance <= self.Avoiding_obstacle_distance_hard_min:
-                        self.lidar_avoidance_pub.publish(String("Front Left Hard"))
-                    else:
-                        self.lidar_avoidance_pub.publish(String("Front Left"))
+                    #if self.front_left_distance <= self.Avoiding_obstacle_distance_hard_min:
+                    #    self.lidar_avoidance_pub.publish(String("Front Left Hard"))
+                    #else:
+                    self.lidar_avoidance_pub.publish(String("Front Left"))
 
                 elif self.back_right_distance <= self.Avoiding_obstacle_distance_min:  # Obstacle Back/Right
-                    if self.back_right_distance <= self.Avoiding_obstacle_distance_hard_min:
-                        self.lidar_avoidance_pub.publish(String("Back Right Hard"))
-                    else:
-                        self.lidar_avoidance_pub.publish(String("Back Right"))
+                    #if self.back_right_distance <= self.Avoiding_obstacle_distance_hard_min:
+                    #    self.lidar_avoidance_pub.publish(String("Back Right Hard"))
+                    #else:
+                    self.lidar_avoidance_pub.publish(String("Back Right"))
 
                 elif self.back_left_distance <= self.Avoiding_obstacle_distance_min:  # Obstacle Back/Left
-                    if self.back_left_distance <= self.Avoiding_obstacle_distance_hard_min:
-                        self.lidar_avoidance_pub.publish(String("Back Left Hard"))
-                    else:
-                        self.lidar_avoidance_pub.publish(String("Back Left"))
+                    #if self.back_left_distance <= self.Avoiding_obstacle_distance_hard_min:
+                    #    self.lidar_avoidance_pub.publish(String("Back Left Hard"))
+                    #else:
+                    self.lidar_avoidance_pub.publish(String("Back Left"))
 
-
+                    '''
                 elif self.front_distance <= self.Avoiding_obstacle_distance_min:  # Obstacle Front
-                    if self.front_distance <= self.Avoiding_obstacle_distance_hard_min:
-                        self.lidar_avoidance_pub.publish(String("Front Hard"))
-                    else:
-                        self.lidar_avoidance_pub.publish(String("Front"))
+                    #if self.front_distance <= self.Avoiding_obstacle_distance_hard_min:
+                    #    self.lidar_avoidance_pub.publish(String("Front Hard"))
+                    #else:
+                    self.lidar_avoidance_pub.publish(String("Front"))
 
                 elif self.back_distance <= self.Avoiding_obstacle_distance_min:  # Obstacle Back
-                    if self.back_distance <= self.Avoiding_obstacle_distance_hard_min:
-                        self.lidar_avoidance_pub.publish(String("Back Hard"))
-                    else:
-                        self.lidar_avoidance_pub.publish(String("Back"))
+                    #if self.back_distance <= self.Avoiding_obstacle_distance_hard_min:
+                    #    self.lidar_avoidance_pub.publish(String("Back Hard"))
+                    #else:
+                    self.lidar_avoidance_pub.publish(String("Back"))
 
                 elif self.left_distance <= self.Avoiding_obstacle_distance_min:  # Obstacle Left
-                    if self.left_distance <= self.Avoiding_obstacle_distance_hard_min:
-                        self.lidar_avoidance_pub.publish(String("Left Hard"))
-                    else:
-                        self.lidar_avoidance_pub.publish(String("Left"))
+                    #if self.left_distance <= self.Avoiding_obstacle_distance_hard_min:
+                    #    self.lidar_avoidance_pub.publish(String("Left Hard"))
+                    #else:
+                    self.lidar_avoidance_pub.publish(String("Left"))
 
                 elif self.right_distance <= self.Avoiding_obstacle_distance_min:  # Obstacle Right
-                    if self.right_distance <= self.Avoiding_obstacle_distance_hard_min:
-                        self.lidar_avoidance_pub.publish(String("Right Hard"))
-                    else:
-                        self.lidar_avoidance_pub.publish(String("Right"))
-     
-
-
-
+                    #if self.right_distance <= self.Avoiding_obstacle_distance_hard_min:
+                    #    self.lidar_avoidance_pub.publish(String("Right Hard"))
+                    #else:
+                    self.lidar_avoidance_pub.publish(String("Right"))
+                    '''
      
                 # NO OBSTACLE
                 else:
                     self.lidar_avoidance_pub.publish(String("No Obstacle"))
 
                
+if __name__ == '__main__':
+    try:
+        ld = Lidar_diptera()
+        #ld.spin()
+        ld.point_cloud()
 
-ld = Lidar_diptera()
-#ld.spin()
-ld.point_cloud()
+    except rospy.ROSInterruptException: pass
+
